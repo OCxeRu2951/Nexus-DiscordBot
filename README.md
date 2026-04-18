@@ -79,9 +79,16 @@ cp .env.example .env
 
 ### 3. 設定ファイルの作成
 
+UNIX系OS
 ```bash
 cp data/jsons/hourly.example.json data/jsons/hourly.json
 cp data/jsons/setting.example.json data/jsons/setting.json
+```
+
+Windows
+```bash
+copy data\jsons\hourly.example.json data\jsons\hourly.json
+copy data\jsons\setting.example.json data\jsons\setting.json
 ```
 
 **`hourly.json`** — 時報メッセージの設定。キーは時間（0〜23）、`default` を `null` にすると指定時間のみ送信。

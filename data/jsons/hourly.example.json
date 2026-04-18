@@ -1,26 +1,25 @@
 {
   "messages": {
-    "default": null,
+    "default": {
+      "content": "{hour}時です。",
+      "embed": null,
+      "image": null,
+      "file": null
+    },
     "0": {
       "content": "日付が変わりました。",
       "embed": null,
       "image": null,
       "file": null
     },
-    "2": {
-      "content": "{hour}時です。",
+    "1": {
+      "content": "深夜{hour}時です。",
       "embed": null,
       "image": null,
-      "file": "manosaba_2ji.jpg"
-    },
-    "4": {
-      "content": "{hour}時です。",
-      "embed": null,
-      "image": null,
-      "file": "four.jpg"
+      "file": null
     },
     "6": {
-      "content": "{hour}時です。起きろー！",
+      "content": "{hour}時です。おはようございます。",
       "embed": null,
       "image": null,
       "file": null
@@ -29,7 +28,7 @@
       "content": "{hour}時です。",
       "embed": null,
       "image": null,
-      "file": "9ji.jpg"
+      "file": null
     },
     "12": {
       "content": "正午になりました。",
@@ -37,20 +36,14 @@
       "image": null,
       "file": null
     },
-    "15": {
-      "content": "{hour}時です。",
-      "embed": null,
-      "image": null,
-      "file": "15ji.jpg"
-    },
     "17": {
       "content": "{hour}時です。",
       "embed": null,
       "image": null,
-      "file": "Sunset glow.mp3"
+      "file": null
     },
     "23": {
-      "content": "{hour}時です。",
+      "content": "{hour}時です。おやすみなさい。",
       "embed": null,
       "image": null,
       "file": null
