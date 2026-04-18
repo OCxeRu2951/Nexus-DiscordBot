@@ -9,6 +9,7 @@ export default {
     ),
 
   async execute(interaction) {
+    await interaction.deferReply();
     const target = interaction.options.getUser('user') ?? interaction.user;
     const member = await interaction.guild.members.fetch(target.id).catch(() => null);
 
@@ -36,6 +37,6 @@ export default {
     }
 
     embed.setTimestamp();
-    await interaction.reply({ embeds: [embed] });
+    await interaction.editReply({ embeds: [embed] });
   },
 };

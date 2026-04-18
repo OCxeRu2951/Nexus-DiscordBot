@@ -18,20 +18,8 @@
       "image": null,
       "file": null
     },
-    "2": {
-      "content": "",
-      "embed": null,
-      "image": "./images/manosaba_2ji.jpg",
-      "file": null
-    },
-    "4": {
-      "content": "",
-      "embed": null,
-      "image": null,
-      "file": "./images/four.jpg"
-    },
     "6": {
-      "content": "{hour}時です。起きろー！",
+      "content": "{hour}時です。おはようございます。",
       "embed": null,
       "image": null,
       "file": null
@@ -52,10 +40,10 @@
       "content": "{hour}時です。",
       "embed": null,
       "image": null,
-      "file": "./sounds/Sunset glow.mp3"
+      "file": null
     },
     "23": {
-      "content": "{hour}時です。そろそろ寝ろ。",
+      "content": "{hour}時です。おやすみなさい。",
       "embed": null,
       "image": null,
       "file": null
