@@ -81,14 +81,14 @@ cp .env.example .env
 
 UNIX系OS
 ```bash
-cp data/jsons/hourly.example.json data/jsons/hourly.json
-cp data/jsons/setting.example.json data/jsons/setting.json
+cp data/jsons/hourly.json.example data/jsons/hourly.json
+cp data/jsons/setting.json.example data/jsons/setting.json
 ```
 
 Windows
 ```bash
-copy data\jsons\hourly.example.json data\jsons\hourly.json
-copy data\jsons\setting.example.json data\jsons\setting.json
+copy data\jsons\hourly.json.example data\jsons\hourly.json
+copy data\jsons\setting.json.example data\jsons\setting.json
 ```
 
 **`hourly.json`** — 時報メッセージの設定。キーは時間（0〜23）、`default` を `null` にすると指定時間のみ送信。
@@ -208,9 +208,9 @@ nexus/
 ├── data/
 │   ├── jsons/
 │   │   ├── hourly.json          # 時報設定（Git管理外）
-│   │   ├── hourly.example.json  # 時報設定サンプル
+│   │   ├── hourly.json.example  # 時報設定サンプル
 │   │   ├── setting.json         # 各種設定（Git管理外）
-│   │   └── setting.example.json # 各種設定サンプル
+│   │   └── setting.json.example # 各種設定サンプル
 │   ├── images/                  # 時報添付画像
 │   └── other/                   # その他添付ファイル
 ├── index.js                 # エントリポイント

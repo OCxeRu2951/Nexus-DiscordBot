@@ -26,4 +26,5 @@ data/other/*
 
 # JSONデータ
 data/jsons/*.json
-!data/jsons/*.example.json
+!data/jsons/*json.example
+
