@@ -1,0 +1,29 @@
+# 環境変数
+.env
+!.env.example
+
+# 依存パッケージ
+node_modules/
+
+# ログ
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# エディター
+.vscode/
+.idea/
+
+# ディレクトリ保持
+data/images/*
+!data/images/.gitkeep
+
+data/other/*
+!data/other/.gitkeep
+
+# JSONデータ
+data/jsons/*.json
+!data/jsons/*.example.json

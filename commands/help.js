@@ -10,7 +10,7 @@ export default {
           .setName("command")
           .setDescription("説明を表示するコマンド名を入力（補完されます）")
           .setRequired(false)
-          .setAutocomplete(true), // オートコンプリートを有効にすると便利です
+          .setAutocomplete(true),
     ),
 
   async execute(interaction) {
@@ -42,7 +42,10 @@ export default {
         .setColor(0x5865f2)
         .setTimestamp();
 
-      return await interaction.reply({ embeds: [embed] });
+      return await interaction.reply({
+        embeds: [embed],
+        ephemeral: true,
+      });
     }
 
     // コマンド指定がない場合（一覧表示）
@@ -95,7 +98,10 @@ export default {
       value: "`!apply`, `!revoke`",
     });
 
-    await interaction.reply({ embeds: [embed] });
+    await interaction.reply({
+      embeds: [embed],
+      ephemeral: true,
+    });
   },
 
   // オートコンプリート機能を利用する場合
