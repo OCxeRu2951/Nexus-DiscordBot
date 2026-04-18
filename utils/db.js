@@ -24,8 +24,38 @@ export async function initDb() {
         id        INTEGER PRIMARY KEY AUTOINCREMENT,
         guild_id  TEXT    NOT NULL,
         user_id   TEXT    NOT NULL,
+        moderator_id TEXT NOT NULL,
         reason    TEXT    NOT NULL,
+        points    INTEGER NOT NULL DEFAULT 1,
         issued_at INTEGER NOT NULL
+      )`,
+      `CREATE TABLE IF NOT EXISTS mod_notes (
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        guild_id     TEXT    NOT NULL,
+        user_id      TEXT    NOT NULL,
+        moderator_id TEXT    NOT NULL,
+        note         TEXT    NOT NULL,
+        created_at   INTEGER NOT NULL
+      )`,
+      `CREATE TABLE IF NOT EXISTS mod_logs (
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        guild_id     TEXT    NOT NULL,
+        action       TEXT    NOT NULL,
+        target_id    TEXT    NOT NULL,
+        moderator_id TEXT    NOT NULL,
+        reason       TEXT,
+        created_at   INTEGER NOT NULL
+      )`,
+      `CREATE TABLE IF NOT EXISTS mod_settings (
+        guild_id        TEXT PRIMARY KEY,
+        log_channel_id  TEXT,
+        warn_threshold_timeout INTEGER DEFAULT 3,
+        warn_threshold_ban     INTEGER DEFAULT 5,
+        timeout_duration_min   INTEGER DEFAULT 60,
+        automod_enabled        INTEGER DEFAULT 0,
+        automod_spam           INTEGER DEFAULT 0,
+        automod_invite         INTEGER DEFAULT 0,
+        automod_badwords       TEXT
       )`,
       `CREATE TABLE IF NOT EXISTS settings (
         guild_id          TEXT PRIMARY KEY,
