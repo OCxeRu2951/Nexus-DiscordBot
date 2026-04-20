@@ -11,8 +11,8 @@ export default {
         .setDescription("操作を選択")
         .setRequired(true)
         .addChoices(
-          { name: "set — AFKを設定する", value: "set" },
-          { name: "list — AFK中のユーザーを表示", value: "list" },
+          { name: "set", value: "set" },
+          { name: "list", value: "list" },
         ),
     )
     .addStringOption((opt) =>

@@ -11,8 +11,8 @@ export default {
         .setDescription("操作を選択")
         .setRequired(true)
         .addChoices(
-          { name: "id — 特定の警告を削除", value: "id" },
-          { name: "all — 全警告を削除", value: "all" },
+          { name: "id", value: "id" },
+          { name: "all", value: "all" },
         ),
     )
     .addUserOption((opt) =>

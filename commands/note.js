@@ -16,9 +16,9 @@ export default {
         .setDescription("操作を選択")
         .setRequired(true)
         .addChoices(
-          { name: "add — ノートを追加", value: "add" },
-          { name: "list — ノート一覧を表示", value: "list" },
-          { name: "delete — ノートを削除", value: "delete" },
+          { name: "add", value: "add" },
+          { name: "list", value: "list" },
+          { name: "delete", value: "delete" },
         ),
     )
     .addUserOption((opt) =>

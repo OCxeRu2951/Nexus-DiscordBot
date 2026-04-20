@@ -11,8 +11,8 @@ export default {
         .setDescription("操作を選択")
         .setRequired(true)
         .addChoices(
-          { name: "set — 時報チャンネルを設定する", value: "set" },
-          { name: "unset — 時報を解除する", value: "unset" },
+          { name: "set", value: "set" },
+          { name: "unset", value: "unset" },
         ),
     )
     .addChannelOption((opt) =>

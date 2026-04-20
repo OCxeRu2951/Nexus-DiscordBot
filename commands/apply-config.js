@@ -24,12 +24,12 @@ export default {
         .setDescription("操作を選択")
         .setRequired(true)
         .addChoices(
-          { name: "channel — 申請チャンネルを設定", value: "channel" },
-          { name: "operator — 通知ロールを設定", value: "operator" },
-          { name: "notify — 通知方法を設定", value: "notify" },
-          { name: "admin — 管理者チャンネルを設定", value: "admin" },
-          { name: "view — 現在の設定を表示", value: "view" },
-          { name: "export — 申請履歴をエクスポート", value: "export" },
+          { name: "channel", value: "channel" },
+          { name: "operator", value: "operator" },
+          { name: "notify", value: "notify" },
+          { name: "admin", value: "admin" },
+          { name: "view", value: "view" },
+          { name: "export", value: "export" },
         ),
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),

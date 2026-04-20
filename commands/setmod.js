@@ -16,9 +16,9 @@ export default {
         .setDescription("操作を選択")
         .setRequired(true)
         .addChoices(
-          { name: "log — ログチャンネルを設定", value: "log" },
-          { name: "threshold — 警告しきい値を設定", value: "threshold" },
-          { name: "view — 現在の設定を表示", value: "view" },
+          { name: "log", value: "log" },
+          { name: "threshold", value: "threshold" },
+          { name: "view", value: "view" },
         ),
     )
     .addChannelOption((opt) =>

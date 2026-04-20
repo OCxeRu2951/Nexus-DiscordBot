@@ -18,23 +18,12 @@ for (const file of commandFiles) {
 
 const rest = new REST().setToken(process.env.DISCORD_TOKEN);
 
-// カンマ区切りで複数ギルドIDに対応
-const guildIds = process.env.GUILD_ID.split(",").map((id) => id.trim());
-
 try {
-  console.log(
-    `Registering ${commands.length} slash commands to ${guildIds.length} guild(s)...`,
-  );
-
-  for (const guildId of guildIds) {
-    await rest.put(
-      Routes.applicationGuildCommands(process.env.CLIENT_ID, guildId),
-      { body: commands },
-    );
-    console.log(`Registered to guild: ${guildId}`);
-  }
-
-  console.log("Done.");
+  console.log(`Registering ${commands.length} global slash commands...`);
+  await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), {
+    body: commands,
+  });
+  console.log("Done. (反映まで最大1時間かかる場合があります)");
 } catch (err) {
   console.error(err);
 }

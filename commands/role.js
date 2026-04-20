@@ -11,8 +11,8 @@ export default {
         .setDescription("操作を選択")
         .setRequired(true)
         .addChoices(
-          { name: "add — ロールを付与", value: "add" },
-          { name: "remove — ロールを剥奪", value: "remove" },
+          { name: "add", value: "add" },
+          { name: "remove", value: "remove" },
         ),
     )
     .addUserOption((opt) =>

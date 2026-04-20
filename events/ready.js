@@ -4,6 +4,7 @@ import { readFileSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { schedulePollEnd } from "../commands/poll.js";
+import { registerGuild } from "./guildCreate.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -12,6 +13,7 @@ export default {
   once: true,
   async execute(client) {
     console.log(`Logged in as ${client.user.tag}`);
+    await registerExistingGuilds(client);
     await restoreReminders(client);
     await restorePolls(client);
     await cleanupExpiredData(client);
@@ -19,6 +21,17 @@ export default {
     scheduleHourlyAnnouncement(client);
   },
 };
+
+// ---- 既存ギルド一括登録 ----
+
+async function registerExistingGuilds(client) {
+  let count = 0;
+  for (const [guildId] of client.guilds.cache) {
+    await registerGuild(guildId);
+    count++;
+  }
+  console.log(`Registered ${count} existing guild(s).`);
+}
 
 // ---- リマインダーキャンセル通知 ----
 
@@ -81,7 +94,12 @@ function loadSetting() {
     return JSON.parse(raw);
   } catch (err) {
     console.warn("Failed to load setting.json, using defaults:", err.message);
-    return { afk_hours: 24, poll_days: 7, warnings_days: 90 };
+    return {
+      afk_hours: 24,
+      poll_days: 7,
+      warnings_days: 90,
+      application_days: 90,
+    };
   }
 }
 
@@ -136,9 +154,6 @@ async function cleanupExpiredData(client) {
       .catch(console.error);
   }
 
-  console.log("Cleanup completed.");
-
-  // applications: application_days日以上経過したものを削除
   if (config.application_days) {
     await db
       .execute({
@@ -147,6 +162,8 @@ async function cleanupExpiredData(client) {
       })
       .catch(console.error);
   }
+
+  console.log("Cleanup completed.");
 }
 
 // ---- 時報 ----
@@ -202,7 +219,6 @@ function buildPayload(entry, hour, minute) {
   }
 
   if (entry.file) {
-    // 拡張子で格納先を判定
     const isAudio = entry.file.match(/\.(mp3|wav)$/i);
     const filePath = isAudio
       ? join(__dirname, "../data/other", entry.file)

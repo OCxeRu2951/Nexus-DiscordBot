@@ -15,8 +15,8 @@ export default {
         .setDescription("操作を選択")
         .setRequired(true)
         .addChoices(
-          { name: "lock — ロック", value: "lock" },
-          { name: "unlock — 解除", value: "unlock" },
+          { name: "lock", value: "lock" },
+          { name: "unlock", value: "unlock" },
         ),
     )
     .addChannelOption((opt) =>
