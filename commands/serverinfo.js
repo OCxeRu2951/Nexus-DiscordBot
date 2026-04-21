@@ -6,6 +6,7 @@ export default {
     .setDescription('サーバー情報を表示します'),
 
   async execute(interaction) {
+    await interaction.deferReply();
     const guild = interaction.guild;
     await guild.fetch();
 
@@ -24,6 +25,6 @@ export default {
       )
       .setTimestamp();
 
-    await interaction.reply({ embeds: [embed] });
+    await interaction.editReply({ embeds: [embed] });
   },
 };
