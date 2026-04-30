@@ -1,0 +1,127 @@
+{
+  "commands": {
+    "afk": {
+      "set": "**{username}** をAFKに設定しました。\n理由: {reason}",
+      "unset": "AFKを解除しました。",
+      "list_empty": "現在AFK中のユーザーはいません。",
+      "list_title": "AFK中のユーザー",
+      "elapsed": "{elapsed}分前から",
+      "mention": "**{username}** は現在AFK中です（{elapsed}分前）\n理由: {reason}"
+    },
+    "timer": {
+      "start": "**{label}** を {time} 後にお知らせします。",
+      "fired": "**{label}** の時間です！ ({time}経過)",
+      "stopped": "**{label}** のタイマーを停止しました。",
+      "no_active": "アクティブなタイマーが見つかりません。",
+      "no_minutes": "`minutes` か `seconds` を1以上指定してください。",
+      "cancelled": "Bot再起動により **{label}** のタイマーがキャンセルされました。再度設定してください。"
+    },
+    "clear": {
+      "success": "{count} 件のメッセージを削除しました。",
+      "fail": "削除に失敗しました。14日以内のメッセージのみ削除可能です。"
+    },
+    "poll": {
+      "min_choices": "選択肢は2つ以上入力してください。",
+      "footer_anonymous": "匿名投票",
+      "footer_max": "最大{max}択",
+      "footer_role": "対象: {role}",
+      "footer_deadline": "終了: {time}",
+      "footer_unlimited": "無期限",
+      "result_title": "📊 投票結果: {question}",
+      "result_footer": "総投票数: {total}",
+      "result_none": "投票なし",
+      "ended": "投票終了"
+    },
+    "warn": {
+      "self": "自分自身に警告を発行することはできません。",
+      "success": "<@{userId}> に警告を発行しました。(+{points}pt / 累計: {total}pt)",
+      "dm": "サーバー **{guild}** で警告を受けました。\n理由: {reason}\nポイント: +{points}pt（累計: {total}pt）",
+      "history_empty": "<@{userId}> の警告履歴はありません。",
+      "history_title": "⚠️ {username} の警告履歴",
+      "history_footer": "累計: {total}pt / {count}件",
+      "history_field": "理由: {reason}\nポイント: {points}pt\n実行者: <@{moderator}>"
+    },
+    "kick": {
+      "not_found": "対象ユーザーがサーバーにいません。",
+      "no_permission": "このユーザーをキックする権限がありません。",
+      "self": "自分自身をキックすることはできません。",
+      "success": "<@{userId}> をキックしました。",
+      "dm": "**{guild}** からキックされました。\n理由: {reason}"
+    },
+    "ban": {
+      "self": "自分自身をBANすることはできません。",
+      "no_permission": "このユーザーをBANする権限がありません。",
+      "success": "<@{userId}> をBANしました。",
+      "dm": "**{guild}** からBANされました。\n理由: {reason}"
+    },
+    "unban": {
+      "not_banned": "指定されたユーザーはBANされていません。",
+      "success": "<@{userId}> のBANを解除しました。"
+    },
+    "timeout": {
+      "not_found": "対象ユーザーがサーバーにいません。",
+      "no_permission": "このユーザーをタイムアウトする権限がありません。",
+      "self": "自分自身をタイムアウトすることはできません。",
+      "success": "<@{userId}> を {duration} タイムアウトしました。",
+      "dm": "**{guild}** でタイムアウトされました。\n時間: {duration}\n理由: {reason}"
+    },
+    "untimeout": {
+      "not_found": "対象ユーザーがサーバーにいません。",
+      "not_timeout": "このユーザーはタイムアウトされていません。",
+      "success": "<@{userId}> のタイムアウトを解除しました。"
+    },
+    "role": {
+      "not_found": "対象ユーザーがサーバーにいません。",
+      "too_high": "Botよりも上位のロールは操作できません。",
+      "already_has": "対象ユーザーはすでにこのロールを持っています。",
+      "not_has": "対象ユーザーはこのロールを持っていません。",
+      "add_success": "<@{userId}> に <@&{roleId}> を付与しました。",
+      "remove_success": "<@{userId}> から <@&{roleId}> を剥奪しました。"
+    },
+    "slowmode": {
+      "set": "<#{channelId}> の低速モードを {seconds}秒 に設定しました。",
+      "unset": "<#{channelId}> の低速モードを解除しました。"
+    },
+    "lock": {
+      "locked": "🔒 このチャンネルはロックされました。",
+      "unlocked": "🔓 このチャンネルのロックを解除しました。",
+      "lock_success": "<#{channelId}> をロックしました。",
+      "unlock_success": "<#{channelId}> のロックを解除しました。"
+    },
+    "note": {
+      "added": "<@{userId}> にノートを追加しました。",
+      "empty": "<@{userId}> のノートはありません。",
+      "deleted": "ノートID `{id}` を削除しました。",
+      "not_found": "指定されたノートが見つかりません。",
+      "title": "📝 {username} のノート",
+      "field": "{note}\n実行者: <@{moderator}>"
+    },
+    "sethourly": {
+      "set": "時報チャンネルを {channel} に設定しました。",
+      "unset": "時報を解除しました。"
+    },
+    "apply": {
+      "accepted": "申請を受け付けました。IDをDMで送信しました。",
+      "dm_id": "このIDは取り消し時に必要です。大切に保管してください。",
+      "dm_title": "✅ 申請を受け付けました",
+      "wrong_channel": "申請はこのチャンネルでは行えません。",
+      "usage": "使い方: `!apply <申請内容> <コメント>`",
+      "revoke_usage": "使い方: `!revoke <ID>`",
+      "not_found": "指定されたIDの申請が見つかりません。",
+      "already": "この申請はすでに **{status}** です。取り消しできません。",
+      "revoked": "申請 `{id}` を取り消しました。",
+      "approved": "✅ 申請が承認されました",
+      "rejected": "❌ 申請が拒否されました",
+      "new_title": "📩 新規申請",
+      "cancel_title": "🚫 申請取り消し"
+    },
+    "common": {
+      "error": "コマンドの実行中にエラーが発生しました。",
+      "no_permission": "権限がありません。"
+    }
+  },
+  "automod": {
+    "afk_expired": "AFKを設定してから **{hours}時間** が経過したため、自動的に解除しました。\n理由: {reason}",
+    "reminder_cancelled": "Bot再起動により **{label}** のタイマーがキャンセルされました。再度設定してください。"
+  }
+}
