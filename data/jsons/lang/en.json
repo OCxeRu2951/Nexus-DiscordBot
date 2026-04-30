@@ -1,0 +1,127 @@
+{
+  "commands": {
+    "afk": {
+      "set": "**{username}** is now AFK.\nReason: {reason}",
+      "unset": "AFK has been cleared.",
+      "list_empty": "No users are currently AFK.",
+      "list_title": "AFK Users",
+      "elapsed": "{elapsed} minutes ago",
+      "mention": "**{username}** is currently AFK ({elapsed} minutes ago)\nReason: {reason}"
+    },
+    "timer": {
+      "start": "**{label}** will notify you in {time}.",
+      "fired": "**{label}** time is up! ({time} elapsed)",
+      "stopped": "Timer **{label}** has been stopped.",
+      "no_active": "No active timer found.",
+      "no_minutes": "Please specify at least 1 for `minutes` or `seconds`.",
+      "cancelled": "Timer **{label}** was cancelled due to Bot restart. Please set it again."
+    },
+    "clear": {
+      "success": "Deleted {count} messages.",
+      "fail": "Failed to delete. Only messages within 14 days can be deleted."
+    },
+    "poll": {
+      "min_choices": "Please enter at least 2 choices.",
+      "footer_anonymous": "Anonymous",
+      "footer_max": "Max {max} choices",
+      "footer_role": "Role: {role}",
+      "footer_deadline": "Ends: {time}",
+      "footer_unlimited": "Unlimited",
+      "result_title": "📊 Poll Results: {question}",
+      "result_footer": "Total votes: {total}",
+      "result_none": "No votes",
+      "ended": "Poll ended"
+    },
+    "warn": {
+      "self": "You cannot warn yourself.",
+      "success": "Warning issued to <@{userId}>. (+{points}pt / Total: {total}pt)",
+      "dm": "You received a warning in **{guild}**.\nReason: {reason}\nPoints: +{points}pt (Total: {total}pt)",
+      "history_empty": "No warning history for <@{userId}>.",
+      "history_title": "⚠️ Warning History: {username}",
+      "history_footer": "Total: {total}pt / {count} warnings",
+      "history_field": "Reason: {reason}\nPoints: {points}pt\nModerator: <@{moderator}>"
+    },
+    "kick": {
+      "not_found": "Target user is not in this server.",
+      "no_permission": "You do not have permission to kick this user.",
+      "self": "You cannot kick yourself.",
+      "success": "<@{userId}> has been kicked.",
+      "dm": "You were kicked from **{guild}**.\nReason: {reason}"
+    },
+    "ban": {
+      "self": "You cannot ban yourself.",
+      "no_permission": "You do not have permission to ban this user.",
+      "success": "<@{userId}> has been banned.",
+      "dm": "You were banned from **{guild}**.\nReason: {reason}"
+    },
+    "unban": {
+      "not_banned": "The specified user is not banned.",
+      "success": "Unbanned <@{userId}>."
+    },
+    "timeout": {
+      "not_found": "Target user is not in this server.",
+      "no_permission": "You do not have permission to timeout this user.",
+      "self": "You cannot timeout yourself.",
+      "success": "<@{userId}> has been timed out for {duration}.",
+      "dm": "You were timed out in **{guild}**.\nDuration: {duration}\nReason: {reason}"
+    },
+    "untimeout": {
+      "not_found": "Target user is not in this server.",
+      "not_timeout": "This user is not timed out.",
+      "success": "Timeout removed for <@{userId}>."
+    },
+    "role": {
+      "not_found": "Target user is not in this server.",
+      "too_high": "Cannot manage roles higher than the Bot's highest role.",
+      "already_has": "The target user already has this role.",
+      "not_has": "The target user does not have this role.",
+      "add_success": "Added <@&{roleId}> to <@{userId}>.",
+      "remove_success": "Removed <@&{roleId}> from <@{userId}>."
+    },
+    "slowmode": {
+      "set": "Slowmode for <#{channelId}> set to {seconds} seconds.",
+      "unset": "Slowmode for <#{channelId}> has been disabled."
+    },
+    "lock": {
+      "locked": "🔒 This channel has been locked.",
+      "unlocked": "🔓 This channel has been unlocked.",
+      "lock_success": "<#{channelId}> has been locked.",
+      "unlock_success": "<#{channelId}> has been unlocked."
+    },
+    "note": {
+      "added": "Note added for <@{userId}>.",
+      "empty": "No notes for <@{userId}>.",
+      "deleted": "Note `{id}` has been deleted.",
+      "not_found": "The specified note was not found.",
+      "title": "📝 Notes: {username}",
+      "field": "{note}\nModerator: <@{moderator}>"
+    },
+    "sethourly": {
+      "set": "Hourly announcement channel set to {channel}.",
+      "unset": "Hourly announcement has been disabled."
+    },
+    "apply": {
+      "accepted": "Application received. ID sent via DM.",
+      "dm_id": "Keep this ID safe. You will need it to cancel your application.",
+      "dm_title": "✅ Application Received",
+      "wrong_channel": "Applications cannot be submitted in this channel.",
+      "usage": "Usage: `!apply <content> <comment>`",
+      "revoke_usage": "Usage: `!revoke <ID>`",
+      "not_found": "No application found with the specified ID.",
+      "already": "This application is already **{status}**. Cannot cancel.",
+      "revoked": "Application `{id}` has been cancelled.",
+      "approved": "✅ Application Approved",
+      "rejected": "❌ Application Rejected",
+      "new_title": "📩 New Application",
+      "cancel_title": "🚫 Application Cancelled"
+    },
+    "common": {
+      "error": "An error occurred while executing the command.",
+      "no_permission": "You do not have permission."
+    }
+  },
+  "automod": {
+    "afk_expired": "Your AFK has been automatically cleared after **{hours} hours**.\nReason: {reason}",
+    "reminder_cancelled": "Timer **{label}** was cancelled due to Bot restart. Please set it again."
+  }
+}

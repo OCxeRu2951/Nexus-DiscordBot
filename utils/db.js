@@ -94,6 +94,27 @@ export async function initDb() {
         notify_target    TEXT,
         admin_channel_id TEXT
       )`,
+      `CREATE TABLE IF NOT EXISTS guild_settings (
+        guild_id         TEXT PRIMARY KEY,
+        afk_hours        INTEGER DEFAULT 24,
+        poll_days        INTEGER DEFAULT 7,
+        warnings_days    INTEGER DEFAULT 90,
+        application_days INTEGER DEFAULT 90
+      )`,
+      `CREATE TABLE IF NOT EXISTS hourly_messages (
+        guild_id    TEXT    NOT NULL,
+        hour        INTEGER NOT NULL,
+        content     TEXT,
+        image_url   TEXT,
+        file_url    TEXT,
+        embed       TEXT,
+        enabled     INTEGER DEFAULT 1,
+        PRIMARY KEY (guild_id, hour)
+      )`,
+      `CREATE TABLE IF NOT EXISTS guild_lang (
+        guild_id TEXT PRIMARY KEY,
+        lang     TEXT NOT NULL DEFAULT 'ja'
+      )`,
     ],
     "write",
   );
