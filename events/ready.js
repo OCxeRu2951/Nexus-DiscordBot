@@ -3,8 +3,6 @@ import { db } from "../utils/db.js";
 import { schedulePollEnd } from "../commands/poll.js";
 import { registerGuild } from "./guildCreate.js";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
 export default {
   name: "clientReady",
   once: true,
@@ -35,21 +33,15 @@ async function loadSetting(guildId) {
   };
 }
 
-// クリーンアップ
-
 async function cleanupExpiredData(client) {
   for (const [guildId] of client.guilds.cache) {
     const config = await loadSetting(guildId);
     const now = Date.now();
     const expireThreshold = now - config.afk_hours * 60 * 60 * 1000;
 
-    // AFKのクリーンアップ（ギルドごと）
     const { rows: expiredAfk } = await db
       .execute({
-        sql: `SELECT * FROM afk WHERE user_id IN (
-              SELECT user_id FROM afk
-              LIMIT -1 OFFSET 0
-            ) AND since < ?`,
+        sql: `SELECT * FROM afk WHERE since < ?`,
         args: [expireThreshold],
       })
       .catch(() => ({ rows: [] }));
@@ -97,11 +89,8 @@ async function cleanupExpiredData(client) {
         .catch(console.error);
     }
   }
-
   console.log("Cleanup completed.");
 }
-
-// 既存ギルド一括登録
 
 async function registerExistingGuilds(client) {
   let count = 0;
@@ -112,15 +101,12 @@ async function registerExistingGuilds(client) {
   console.log(`Registered ${count} existing guild(s).`);
 }
 
-// リマインダーキャンセル通知
-
 async function restoreReminders(client) {
   try {
     const { rows } = await db.execute(
       `SELECT * FROM reminders WHERE fire_at > ?`,
       [Date.now()],
     );
-
     for (const row of rows) {
       try {
         const user = await client.users.fetch(row.user_id).catch(() => null);
@@ -135,17 +121,13 @@ async function restoreReminders(client) {
         console.error("Failed to notify reminder cancellation:", err);
       }
     }
-
     await db.execute(`DELETE FROM reminders WHERE fire_at > ?`, [Date.now()]);
-
     if (rows.length > 0)
       console.log(`Cancelled ${rows.length} reminder(s) and notified users.`);
   } catch (err) {
     console.error("Failed to process reminders on restart:", err);
   }
 }
-
-// 投票復元
 
 async function restorePolls(client) {
   try {
@@ -162,7 +144,12 @@ async function restorePolls(client) {
   }
 }
 
-// 時報
+function replacePlaceholders(str, hour, minute) {
+  if (!str) return str;
+  return str
+    .replace(/{hour}/g, String(hour).padStart(2, "0"))
+    .replace(/{minute}/g, String(minute).padStart(2, "0"));
+}
 
 async function getHourlyPayload(guildId, hour, minute) {
   const { rows: exactRows } = await db
@@ -233,31 +220,6 @@ async function getHourlyPayload(guildId, hour, minute) {
   return Object.keys(payload).length > 0 ? payload : null;
 }
 
-async function sendHourlyAnnouncement(client) {
-  const jst = new Date(Date.now() + 9 * 60 * 60 * 1000);
-  const hour = jst.getHours();
-  const minute = jst.getMinutes();
-
-  for (const [guildId] of client.guilds.cache) {
-    const { rows } = await db
-      .execute({
-        sql: `SELECT hourly_channel_id FROM settings WHERE guild_id = ?`,
-        args: [guildId],
-      })
-      .catch(() => ({ rows: [] }));
-
-    if (!rows.length || !rows[0].hourly_channel_id) continue;
-
-    const channel = client.channels.cache.get(rows[0].hourly_channel_id);
-    if (!channel) continue;
-
-    const payload = await getHourlyPayload(guildId, hour, minute);
-    if (!payload) continue;
-
-    await channel.send(payload).catch(console.error);
-  }
-}
-
 function scheduleHourlyAnnouncement(client) {
   const now = new Date();
   const msUntilNextHour =
@@ -271,13 +233,6 @@ function scheduleHourlyAnnouncement(client) {
   }, msUntilNextHour);
 }
 
-function replacePlaceholders(str, hour, minute) {
-  if (!str) return str;
-  return str
-    .replace(/{hour}/g, String(hour).padStart(2, "0"))
-    .replace(/{minute}/g, String(minute).padStart(2, "0"));
-}
-
 async function sendHourlyAnnouncement(client) {
   const jst = new Date(Date.now() + 9 * 60 * 60 * 1000);
   const hour = jst.getHours();
@@ -296,7 +251,6 @@ async function sendHourlyAnnouncement(client) {
     const channel = client.channels.cache.get(rows[0].hourly_channel_id);
     if (!channel) continue;
 
-    // guildIdごとにDBから取得
     const payload = await getHourlyPayload(guildId, hour, minute);
     if (!payload) continue;
 
