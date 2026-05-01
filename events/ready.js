@@ -162,69 +162,6 @@ async function restorePolls(client) {
   }
 }
 
-async function cleanupExpiredData(client) {
-  const config = loadSetting();
-  const now = Date.now();
-  const expireThreshold = now - config.afk_hours * 60 * 60 * 1000;
-
-  // AFK期限切れユーザーにDM通知してから削除
-  const { rows: expiredAfk } = await db
-    .execute({
-      sql: `SELECT * FROM afk WHERE since < ?`,
-      args: [expireThreshold],
-    })
-    .catch(() => ({ rows: [] }));
-
-  for (const row of expiredAfk) {
-    try {
-      const user = await client.users.fetch(row.user_id).catch(() => null);
-      if (user) {
-        await user
-          .send(
-            `AFKを設定してから **${config.afk_hours}時間** が経過したため、自動的に解除しました。\n理由: ${row.reason}`,
-          )
-          .catch(() => {});
-      }
-    } catch (err) {
-      console.error("Failed to notify AFK expiry:", err);
-    }
-  }
-
-  await db
-    .execute({
-      sql: `DELETE FROM afk WHERE since < ?`,
-      args: [expireThreshold],
-    })
-    .catch(console.error);
-
-  await db
-    .execute({
-      sql: `DELETE FROM polls WHERE end_at IS NOT NULL AND end_at < ?`,
-      args: [now - config.poll_days * 24 * 60 * 60 * 1000],
-    })
-    .catch(console.error);
-
-  if (config.warnings_days) {
-    await db
-      .execute({
-        sql: `DELETE FROM warnings WHERE issued_at < ?`,
-        args: [now - config.warnings_days * 24 * 60 * 60 * 1000],
-      })
-      .catch(console.error);
-  }
-
-  if (config.application_days) {
-    await db
-      .execute({
-        sql: `DELETE FROM applications WHERE created_at < ?`,
-        args: [now - config.application_days * 24 * 60 * 60 * 1000],
-      })
-      .catch(console.error);
-  }
-
-  console.log("Cleanup completed.");
-}
-
 // 時報
 
 async function getHourlyPayload(guildId, hour, minute) {
