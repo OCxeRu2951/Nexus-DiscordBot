@@ -97,7 +97,7 @@ export default {
       });
 
       // 申請者にDMでID通知
-      await message.author
+      const dmResult = await message.author
         .send({
           embeds: [
             new EmbedBuilder()
@@ -114,9 +114,18 @@ export default {
               .setTimestamp(),
           ],
         })
-        .catch(() => {});
+        .catch((err) => {
+          console.error("Failed to DM applicant:", err.message);
+          return null;
+        });
 
-      await message.reply(`申請を受け付けました。IDをDMで送信しました。`);
+      if (!dmResult) {
+        await message.reply(
+          "申請を受け付けましたが、DMの送信に失敗しました。DMを許可しているか確認してください。",
+        );
+      } else {
+        await message.reply("申請を受け付けました。IDをDMで送信しました。");
+      }
 
       // 管理者/ロールへの通知
       const applyEmbed = new EmbedBuilder()
