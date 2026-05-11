@@ -7,7 +7,7 @@ discord.js v14製のユーティリティBot。モデレーション・タイマ
 ### ユーティリティ
 
 | コマンド | 説明 |
-|---|---|
+| --- | --- |
 | `/timer` | タイマー管理。start: 分・秒単位で設定 / stop: 停止 |
 | `/clear` | メッセージ一括削除。特定ユーザー指定可能（要ManageMessages権限） |
 | `/poll` | 投票作成。終了時間・匿名・複数選択・ロール制限・結果非通知に対応 |
@@ -19,7 +19,7 @@ discord.js v14製のユーティリティBot。モデレーション・タイマ
 ### 時報
 
 | コマンド | 説明 |
-|---|---|
+| --- | --- |
 | `/sethourly` | 時報の設定。set: チャンネル設定 / unset: 解除 |
 
 時報は毎時0分に設定チャンネルへ送信。`data/jsons/hourly.json` でメッセージ・Embed・画像・ファイル添付を時間ごとに設定可能。
@@ -27,7 +27,7 @@ discord.js v14製のユーティリティBot。モデレーション・タイマ
 ### モデレーション
 
 | コマンド | 説明 |
-|---|---|
+| --- | --- |
 | `/warn` | 警告発行。ポイント制・しきい値で自動タイムアウト・BAN |
 | `/warnings` | 警告履歴表示 |
 | `/clearwarn` | 警告削除（個別 / 全削除） |
@@ -42,11 +42,12 @@ discord.js v14製のユーティリティBot。モデレーション・タイマ
 | `/note` | モデレーターノート管理（add / list / delete） |
 | `/modhistory` | モデレーション履歴表示 |
 | `/setmod` | モデレーション設定（ログチャンネル・警告しきい値） |
+| `/language` | 言語を変更（実装途中） |
 
 ### 申請システム
 
 | コマンド/コマンド | 説明 |
-|---|---|
+| --- | --- |
 | `!apply <内容> <コメント>` | 申請を送信。IDを自動生成しDMで通知 |
 | `!revoke <ID>` | 申請を取り消し |
 | `/apply-config` | 申請システム設定（channel / operator / notify / admin / view / export） |
@@ -70,54 +71,19 @@ cp .env.example .env
 ```
 
 | 変数 | 説明 |
-|---|---|
+| --- | --- |
 | `DISCORD_TOKEN` | Bot Token（Discord Developer Portal > Bot） |
 | `CLIENT_ID` | ApplicationのID（General Information） |
-| `GUILD_ID` | サーバーID。カンマ区切りで複数指定可能（例: `111,222`） |
 | `TURSO_URL` | TursoのDB URL |
 | `TURSO_AUTH_TOKEN` | Tursoの認証トークン |
 
-### 3. 設定ファイルの作成
-
-UNIX系OS
-```bash
-cp data/jsons/hourly.json.example data/jsons/hourly.json
-cp data/jsons/setting.json.example data/jsons/setting.json
-```
-
-Windows
-```bash
-copy data\jsons\hourly.json.example data\jsons\hourly.json
-copy data\jsons\setting.json.example data\jsons\setting.json
-```
-
-**`hourly.json`** — 時報メッセージの設定。キーは時間（0〜23）、`default` を `null` にすると指定時間のみ送信。
-
-| フィールド | 説明 |
-|---|---|
-| `content` | テキストメッセージ |
-| `embed` | Embedの設定（title / description / color / footer / image / thumbnail） |
-| `image` | 画像URL（embedなしの場合に単体で表示） |
-| `file` | `data/images/` 内の画像ファイル名、または `data/other/` 内のファイル名 |
-
-`{hour}` `{minute}` はプレースホルダーとして送信時に自動置換される。
-
-**`setting.json`** — 各種設定。
-
-| フィールド | 説明 | デフォルト |
-|---|---|---|
-| `afk_hours` | AFK自動解除までの時間 | 24 |
-| `poll_days` | 投票データの保持日数 | 7 |
-| `warnings_days` | 警告データの保持日数 | 90 |
-| `application_days` | 申請データの保持日数 | 90 |
-
-### 4. Slash Commandの登録
+### 3. Slash Commandの登録
 
 ```bash
 node deploy-commands.js
 ```
 
-### 5. 起動
+### 4. 起動
 
 ```bash
 node index.js
@@ -144,8 +110,6 @@ npm install
 
 # 環境変数・設定ファイルの作成
 cp .env.example .env
-cp data/jsons/setting.example.json data/jsons/setting.json
-cp data/jsons/hourly.example.json data/jsons/hourly.json
 
 # コマンド登録・起動
 node deploy-commands.js
@@ -159,7 +123,7 @@ pm2 startup
 リポジトリのSecretsに以下を登録する。
 
 | キー | 内容 |
-|---|---|
+| --- | --- |
 | `GCP_HOST` または `ORACLE_HOST` | VMのパブリックIPアドレス |
 | `GCP_USER` または `ORACLE_USER` | SSHユーザー名 |
 | `GCP_SSH_KEY` または `ORACLE_SSH_KEY` | SSH秘密鍵 |
@@ -168,7 +132,7 @@ pm2 startup
 
 ## ディレクトリ構成
 
-```
+```dir
 nexus/
 ├── .github/
 │   └── workflows/
@@ -191,6 +155,7 @@ nexus/
 │   ├── timeout.js           # タイムアウト
 │   ├── untimeout.js         # タイムアウト解除
 │   ├── slowmode.js          # 低速モード
+│   ├── lang.js              # 言語設定(実装中)
 │   ├── lock.js              # チャンネルロック
 │   ├── role.js              # ロール管理
 │   ├── note.js              # ノート管理
@@ -198,21 +163,23 @@ nexus/
 │   ├── setmod.js            # モデレーション設定
 │   └── apply-config.js      # 申請システム設定
 ├── events/
+│   ├── guildCreate.js
+│   ├── guildDelete.js
 │   ├── ready.js             # 起動確認・時報・投票復元・クリーンアップ
 │   ├── interactionCreate.js # Slash Command・ボタンハンドラー
 │   └── messageCreate.js     # AFK検知・申請コマンド
 ├── utils/
+│   ├── i18n.js
+│   ├── modLog.js
 │   ├── db.js                # DB接続・テーブル初期化
 │   ├── modLog.js            # モデレーションログ・自動エスカレーション
 │   └── applyExport.js       # 申請履歴エクスポート
 ├── data/
-│   ├── jsons/
-│   │   ├── hourly.json          # 時報設定（Git管理外）
-│   │   ├── hourly.json.example  # 時報設定サンプル
-│   │   ├── setting.json         # 各種設定（Git管理外）
-│   │   └── setting.json.example # 各種設定サンプル
-│   ├── images/                  # 時報添付画像
-│   └── other/                   # その他添付ファイル
+│   ├── jsons/lnag
+│   │   ├── ja.json          # 各種設定（Git管理外）
+│   │   └── en.json          # 各種設定サンプル
+│   ├── images/              # 時報添付画像
+│   └── other/               # その他添付ファイル
 ├── index.js                 # エントリポイント
 ├── deploy-commands.js       # Slash Command登録スクリプト
 ├── Dockerfile
