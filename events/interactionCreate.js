@@ -4,39 +4,35 @@ import { EmbedBuilder } from "discord.js";
 export default {
   name: "interactionCreate",
   async execute(interaction, client) {
-    // ---- ボタン処理 ----
     if (interaction.isButton()) {
       const { customId } = interaction;
 
       if (customId.startsWith("show_id_")) {
-        // show_id_{userId}_{applicationId}
+        await interaction.deferReply({ ephemeral: true });
+
         const parts = customId.split("_");
-        // "show" "id" userId appId の順
+
         const userId = parts[2];
         const appId = parts.slice(3).join("_");
 
-        // 申請者本人のみ
         if (interaction.user.id !== userId) {
-          return interaction.reply({
+          return interaction.editReply({
             content: "⚠️ この操作は申請者本人のみ実行できます。",
-            ephemeral: true,
           });
         }
 
-        // DBから申請IDを確認
         const { rows } = await db.execute({
           sql: `SELECT id FROM applications WHERE id = ? AND user_id = ?`,
           args: [appId, userId],
         });
 
         if (rows.length === 0) {
-          return interaction.reply({
-            content: "申請が見つかりません。",
-            ephemeral: true,
+          return interaction.editReply({
+            content: "申請が見てかりません。",
           });
         }
 
-        return interaction.reply({
+        return interaction.editReply({
           embeds: [
             new EmbedBuilder()
               .setTitle("📋 申請ID")
@@ -47,7 +43,6 @@ export default {
               )
               .setTimestamp(),
           ],
-          ephemeral: true,
         });
       }
 

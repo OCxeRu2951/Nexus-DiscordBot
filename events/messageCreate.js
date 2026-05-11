@@ -126,7 +126,7 @@ export default {
           components: [
             new ActionRowBuilder().addComponents(
               new ButtonBuilder()
-                .setCustomId(`show_id|${message.author.id}|${id}`)
+                .setCustomId(`show_id|${message.author.id}_${id}`)
                 .setLabel("IDを表示")
                 .setStyle(ButtonStyle.Primary),
             ),
