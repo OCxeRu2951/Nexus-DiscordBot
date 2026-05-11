@@ -8,51 +8,68 @@ export default {
       const { customId } = interaction;
 
       if (customId.startsWith("show_id_")) {
+        console.log("--- Button Interaction Debug ---");
+        console.log(`[1] Raw CustomID: ${customId}`);
+
         try {
-          // 1. 何よりも先に「考え中」を出す（3秒ルール回避）
+          // インタラクション失敗を避けるため即座に defer
           await interaction.deferReply({ ephemeral: true });
+          console.log("[2] Interaction deferred successfully.");
 
           const parts = customId.split("_");
+          console.log(`[3] Split Parts:`, parts);
+
+          // 送信側が show_id_userId_appId の形式であることを想定
           const userId = parts[2];
           const appId = parts[3];
 
-          console.log(`Checking ID for: User=${userId}, App=${appId}`); // ログで確認
+          console.log(`[4] Parsed Data: UserID=${userId}, AppID=${appId}`);
+          console.log(`[5] Clicking User: ${interaction.user.id}`);
 
           if (interaction.user.id !== userId) {
+            console.log("[!] Security Check: User ID mismatch.");
             return await interaction.editReply({
-              content: "⚠️ 本人のみ確認可能です。",
+              content: "⚠️ 自分の申請IDのみ確認できます。",
             });
           }
 
+          // DB検索の直前にログ
+          console.log(`[6] Executing DB Query for AppID: ${appId}`);
           const { rows } = await db.execute({
-            sql: `SELECT id FROM applications WHERE id = ? AND user_id = ?`,
+            sql: `SELECT id, status FROM applications WHERE id = ? AND user_id = ?`,
             args: [appId, userId],
           });
 
+          console.log(`[7] DB Result:`, rows);
+
           if (rows.length === 0) {
+            console.log("[!] DB Check: No matching application found.");
             return await interaction.editReply({
-              content: "申請データが見つかりませんでした。",
+              content:
+                "申請データが見つかりませんでした。期限切れか、すでに削除された可能性があります。",
             });
           }
 
+          console.log("[8] Success: Sending ID to user.");
           return await interaction.editReply({
             embeds: [
               new EmbedBuilder()
-                .setTitle("📋 申請ID")
-                .setDescription(`あなたのID: \`${appId}\``)
+                .setTitle("📋 申請IDの再確認")
+                .setDescription(`あなたの申請IDは \`${appId}\` です。`)
                 .setColor(0x5865f2),
             ],
           });
         } catch (error) {
-          console.error("Show ID Error:", error);
-          // すでに defer しているので reply ではなく editReply を使う
+          console.error("--- Critical Interaction Error ---");
+          console.error(error);
+
           if (interaction.deferred) {
             await interaction.editReply({
-              content: "処理中にエラーが発生しました。",
+              content: "処理中にエラーが発生しました。ログを確認してください。",
             });
           }
         }
-        return; // 処理をここで確実に終わらせる
+        console.log("--- End Debug ---");
       }
 
       if (
