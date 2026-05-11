@@ -121,7 +121,7 @@ export default {
 
       if (!dmResult) {
         await message.reply(
-          "申請を受け付けましたが、DMの送信に失敗しました。DMを許可しているか確認してください。",
+          `申請を受け付けました。IDは \`${id}\` です。（DMの送信に失敗したため、このIDを必ず控えてください）`,
         );
       } else {
         await message.reply("申請を受け付けました。IDをDMで送信しました。");
