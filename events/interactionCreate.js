@@ -8,6 +8,49 @@ export default {
     if (interaction.isButton()) {
       const { customId } = interaction;
 
+      if (customId.startsWith("show_id_")) {
+        // show_id_{userId}_{applicationId}
+        const parts = customId.split("_");
+        // "show" "id" userId appId の順
+        const userId = parts[2];
+        const appId = parts.slice(3).join("_");
+
+        // 申請者本人のみ
+        if (interaction.user.id !== userId) {
+          return interaction.reply({
+            content: "⚠️ この操作は申請者本人のみ実行できます。",
+            ephemeral: true,
+          });
+        }
+
+        // DBから申請IDを確認
+        const { rows } = await db.execute({
+          sql: `SELECT id FROM applications WHERE id = ? AND user_id = ?`,
+          args: [appId, userId],
+        });
+
+        if (rows.length === 0) {
+          return interaction.reply({
+            content: "申請が見つかりません。",
+            ephemeral: true,
+          });
+        }
+
+        return interaction.reply({
+          embeds: [
+            new EmbedBuilder()
+              .setTitle("📋 申請ID")
+              .setColor(0x5865f2)
+              .addFields({ name: "ID", value: `\`${appId}\`` })
+              .setDescription(
+                "このIDは取り消し時に必要です。必ず控えてください。",
+              )
+              .setTimestamp(),
+          ],
+          ephemeral: true,
+        });
+      }
+
       if (
         customId.startsWith("apply_approve_") ||
         customId.startsWith("apply_reject_")

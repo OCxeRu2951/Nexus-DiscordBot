@@ -120,11 +120,20 @@ export default {
         });
 
       if (!dmResult) {
-        await message.reply(
-          `申請を受け付けました。IDは \`${id}\` です。（DMの送信に失敗したため、このIDを必ず控えてください）`,
-        );
+        await message.reply({
+          content:
+            "⚠️ 申請を受け付けましたが、DMを送信できませんでした。下のボタンを押してIDを確認し、必ず控えてください。",
+          components: [
+            new ActionRowBuilder().addComponents(
+              new ButtonBuilder()
+                .setCustomId(`show_id|${message.author.id}|${id}`)
+                .setLabel("IDを表示")
+                .setStyle(ButtonStyle.Primary),
+            ),
+          ],
+        });
       } else {
-        await message.reply("申請を受け付けました。IDをDMで送信しました。");
+        await message.reply("✅ 申請を受け付けました。IDをDMで送信しました。");
       }
 
       // 管理者/ロールへの通知
