@@ -44,47 +44,42 @@ export default {
         });
 
         // ボタンを無効化
-        const disabledRow = interaction.message.components[0].components.map(
-          (btn) => (btn.toJSON ? { ...btn.toJSON(), disabled: true } : btn),
+        const disabledComponents = interaction.message.components.map(
+          (row) => ({
+            type: 1,
+            components: row.components.map((btn) => ({
+              ...btn.toJSON(),
+              disabled: true,
+            })),
+          }),
         );
+
         await interaction
-          .update({
-            components: [
-              {
-                type: 1,
-                components: disabledRow,
-              },
-            ],
-          })
+          .update({ components: disabledComponents })
           .catch(() => {});
 
-        // 申請者にDMで通知
-        const guild = client.guilds.cache.get(app.guild_id);
-        if (guild) {
-          const member = await guild.members
-            .fetch(app.user_id)
-            .catch(() => null);
-          if (member) {
-            await member
-              .send({
-                embeds: [
-                  new EmbedBuilder()
-                    .setTitle(
-                      isApprove
-                        ? "✅ 申請が承認されました"
-                        : "❌ 申請が拒否されました",
-                    )
-                    .setColor(isApprove ? 0x2ecc71 : 0xe74c3c)
-                    .addFields(
-                      { name: "ID", value: `\`${id}\``, inline: true },
-                      { name: "申請内容", value: app.content, inline: true },
-                      { name: "コメント", value: app.comment ?? "なし" },
-                    )
-                    .setTimestamp(),
-                ],
-              })
-              .catch(() => {});
-          }
+        // 申請者にDM（client.usersから直接fetch）
+        try {
+          const user = await client.users.fetch(app.user_id);
+          await user.send({
+            embeds: [
+              new EmbedBuilder()
+                .setTitle(
+                  isApprove
+                    ? "✅ 申請が承認されました"
+                    : "❌ 申請が拒否されました",
+                )
+                .setColor(isApprove ? 0x2ecc71 : 0xe74c3c)
+                .addFields(
+                  { name: "ID", value: `\`${id}\``, inline: true },
+                  { name: "申請内容", value: app.content, inline: true },
+                  { name: "コメント", value: app.comment ?? "なし" },
+                )
+                .setTimestamp(),
+            ],
+          });
+        } catch (err) {
+          console.error("Failed to DM applicant:", err);
         }
 
         return interaction.followUp({
@@ -92,8 +87,6 @@ export default {
           ephemeral: true,
         });
       }
-
-      return;
     }
 
     // ---- セレクトメニュー処理 ----
