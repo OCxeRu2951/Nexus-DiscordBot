@@ -8,42 +8,51 @@ export default {
       const { customId } = interaction;
 
       if (customId.startsWith("show_id_")) {
-        await interaction.deferReply({ ephemeral: true });
+        try {
+          // 1. 何よりも先に「考え中」を出す（3秒ルール回避）
+          await interaction.deferReply({ ephemeral: true });
 
-        const parts = customId.split("_");
+          const parts = customId.split("_");
+          const userId = parts[2];
+          const appId = parts[3];
 
-        const userId = parts[2];
-        const appId = parts.slice(3).join("_");
+          console.log(`Checking ID for: User=${userId}, App=${appId}`); // ログで確認
 
-        if (interaction.user.id !== userId) {
-          return interaction.editReply({
-            content: "⚠️ この操作は申請者本人のみ実行できます。",
+          if (interaction.user.id !== userId) {
+            return await interaction.editReply({
+              content: "⚠️ 本人のみ確認可能です。",
+            });
+          }
+
+          const { rows } = await db.execute({
+            sql: `SELECT id FROM applications WHERE id = ? AND user_id = ?`,
+            args: [appId, userId],
           });
-        }
 
-        const { rows } = await db.execute({
-          sql: `SELECT id FROM applications WHERE id = ? AND user_id = ?`,
-          args: [appId, userId],
-        });
+          if (rows.length === 0) {
+            return await interaction.editReply({
+              content: "申請データが見つかりませんでした。",
+            });
+          }
 
-        if (rows.length === 0) {
-          return interaction.editReply({
-            content: "申請が見てかりません。",
+          return await interaction.editReply({
+            embeds: [
+              new EmbedBuilder()
+                .setTitle("📋 申請ID")
+                .setDescription(`あなたのID: \`${appId}\``)
+                .setColor(0x5865f2),
+            ],
           });
+        } catch (error) {
+          console.error("Show ID Error:", error);
+          // すでに defer しているので reply ではなく editReply を使う
+          if (interaction.deferred) {
+            await interaction.editReply({
+              content: "処理中にエラーが発生しました。",
+            });
+          }
         }
-
-        return interaction.editReply({
-          embeds: [
-            new EmbedBuilder()
-              .setTitle("📋 申請ID")
-              .setColor(0x5865f2)
-              .addFields({ name: "ID", value: `\`${appId}\`` })
-              .setDescription(
-                "このIDは取り消し時に必要です。必ず控えてください。",
-              )
-              .setTimestamp(),
-          ],
-        });
+        return; // 処理をここで確実に終わらせる
       }
 
       if (
