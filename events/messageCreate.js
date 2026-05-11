@@ -161,16 +161,23 @@ export default {
       }
 
       // チャンネル通知
+      const sentChannels = new Set();
+
       if (setting.notify_type === "channel" && setting.notify_target) {
         const ch = message.guild.channels.cache.get(setting.notify_target);
-        if (ch)
+        if (ch) {
           await ch
             .send({ embeds: [applyEmbed], components: [buttons] })
             .catch(console.error);
+          sentChannels.add(setting.notify_target);
+        }
       }
 
       // 管理者チャンネルにも送信
-      if (setting.admin_channel_id) {
+      if (
+        setting.admin_channel_id &&
+        !sentChannels.has(setting.admin_channel_id)
+      ) {
         const adminCh = message.guild.channels.cache.get(
           setting.admin_channel_id,
         );
@@ -233,7 +240,20 @@ export default {
         )
         .setTimestamp();
 
-      if (setting?.admin_channel_id) {
+      const revokeNotifiedChannels = new Set();
+
+      if (setting?.notify_type === "channel" && setting?.notify_target) {
+        const ch = message.guild.channels.cache.get(setting.notify_target);
+        if (ch) {
+          await ch.send({ embeds: [revokeEmbed] }).catch(console.error);
+          revokeNotifiedChannels.add(setting.notify_target);
+        }
+      }
+
+      if (
+        setting?.admin_channel_id &&
+        !revokeNotifiedChannels.has(setting.admin_channel_id)
+      ) {
         const adminCh = message.guild.channels.cache.get(
           setting.admin_channel_id,
         );
