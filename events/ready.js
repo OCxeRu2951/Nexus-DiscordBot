@@ -152,23 +152,45 @@ function replacePlaceholders(str, hour, minute) {
 }
 
 async function getHourlyPayload(guildId, hour, minute) {
-  const { rows: exactRows } = await db
+  const jst = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const dow = jst.getDay(); // 0=日 〜 6=土
+
+  // 優先度1: 曜日+時間帯が一致
+  const { rows: r1 } = await db
     .execute({
-      sql: `SELECT * FROM hourly_messages WHERE guild_id = ? AND hour = ? AND enabled = 1`,
+      sql: `SELECT * FROM hourly_messages WHERE guild_id = ? AND hour = ? AND day_of_week = ? AND enabled = 1 LIMIT 1`,
+      args: [guildId, hour, dow],
+    })
+    .catch(() => ({ rows: [] }));
+
+  // 優先度2: 曜日+デフォルト時間(-1)
+  const { rows: r2 } = await db
+    .execute({
+      sql: `SELECT * FROM hourly_messages WHERE guild_id = ? AND hour = -1 AND day_of_week = ? AND enabled = 1 LIMIT 1`,
+      args: [guildId, dow],
+    })
+    .catch(() => ({ rows: [] }));
+
+  // 優先度3: 全曜日+時間帯が一致
+  const { rows: r3 } = await db
+    .execute({
+      sql: `SELECT * FROM hourly_messages WHERE guild_id = ? AND hour = ? AND day_of_week IS NULL AND enabled = 1 LIMIT 1`,
       args: [guildId, hour],
     })
     .catch(() => ({ rows: [] }));
 
-  const { rows: defaultRows } = await db
+  // 優先度4: 全曜日+デフォルト(-1)
+  const { rows: r4 } = await db
     .execute({
-      sql: `SELECT * FROM hourly_messages WHERE guild_id = ? AND hour = -1 AND enabled = 1`,
+      sql: `SELECT * FROM hourly_messages WHERE guild_id = ? AND hour = -1 AND day_of_week IS NULL AND enabled = 1 LIMIT 1`,
       args: [guildId],
     })
     .catch(() => ({ rows: [] }));
 
-  const entry = exactRows[0] ?? defaultRows[0] ?? null;
+  const entry = r1[0] ?? r2[0] ?? r3[0] ?? r4[0] ?? null;
   if (!entry) return null;
 
+  // 以降は既存の payload 組み立て処理と同じ
   const payload = {};
 
   if (entry.content) {
@@ -209,8 +231,6 @@ async function getHourlyPayload(guildId, hour, minute) {
         const buffer = Buffer.from(await res.arrayBuffer());
         const fileName = entry.file_url.split("/").pop().split("?")[0];
         payload.files = [{ attachment: buffer, name: fileName }];
-      } else {
-        console.warn(`Failed to fetch file: ${entry.file_url}`);
       }
     } catch (err) {
       console.error("Failed to attach file:", err);

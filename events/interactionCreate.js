@@ -1,5 +1,6 @@
 import { db } from "../utils/db.js";
 import { EmbedBuilder } from "discord.js";
+import { handleTimerStopSelect } from "../commands/timer.js";
 
 export default {
   name: "interactionCreate",
@@ -175,6 +176,10 @@ export default {
     }
 
     if (interaction.isStringSelectMenu()) {
+      if (interaction.customId === "timer_stop_select") {
+        return handleTimerStopSelect(interaction);
+      }
+      
       if (interaction.customId === "apply_config_notify") {
         const notifyType = interaction.values[0];
 
