@@ -7,7 +7,7 @@
 [![discord.js](https://img.shields.io/badge/discord.js-v14-5865f2)](https://discord.js.org)
 [![Node.js](https://img.shields.io/badge/Node.js-20%2B-green)](https://nodejs.org)
 
-[日本語版のREADMEはこちら](./README.md)
+[日本語版のREADMEはこちら](./README/ja-README.md)
 
 ---
 
