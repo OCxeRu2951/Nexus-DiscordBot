@@ -7,7 +7,7 @@ export default {
     .setDescription("Set the bot language / 言語を設定します")
     .addStringOption((opt) =>
       opt
-        .setName("language")
+        .setName("lang")
         .setDescription("Language / 言語")
         .setRequired(true)
         .addChoices(
@@ -17,7 +17,7 @@ export default {
     ),
 
   async execute(interaction) {
-    const lang = interaction.options.getString("language");
+    const lang = interaction.options.getString("lang");
 
     await db.execute({
       sql: `INSERT INTO guild_lang (guild_id, lang) VALUES (?, ?)
