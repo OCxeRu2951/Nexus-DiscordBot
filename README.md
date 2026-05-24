@@ -1,199 +1,222 @@
-# Nexus — Discord Utility Bot
+# Nexus Bot
 
-discord.js v14製のユーティリティBot。モデレーション・タイマー・投票・時報・申請システムなど多機能なオールインワンBot。
+> An all-in-one utility Discord Bot
 
-## 機能一覧
+[![Version](https://img.shields.io/badge/version-v0.7.0-f07830)](https://github.com/OCxeRu2951/DiscordBot-Nexus/releases)
+[![License](https://img.shields.io/badge/license-AGPL--3.0-blue)](./LICENSE)
+[![discord.js](https://img.shields.io/badge/discord.js-v14-5865f2)](https://discord.js.org)
+[![Node.js](https://img.shields.io/badge/Node.js-20%2B-green)](https://nodejs.org)
 
-### ユーティリティ
-
-| コマンド | 説明 |
-| --- | --- |
-| `/timer` | タイマー管理。start: 分・秒単位で設定 / stop: 停止 |
-| `/clear` | メッセージ一括削除。特定ユーザー指定可能（要ManageMessages権限） |
-| `/poll` | 投票作成。終了時間・匿名・複数選択・ロール制限・結果非通知に対応 |
-| `/dice` | ダイスロール。バフ・デバフによる重み付き抽選・複数セット対応 |
-| `/serverinfo` | サーバー情報を表示 |
-| `/userinfo` | ユーザー情報を表示 |
-| `/afk` | AFK管理。set: 設定 / list: 一覧表示。メンション時に自動返信・24時間で自動解除 |
-
-### 時報
-
-| コマンド | 説明 |
-| --- | --- |
-| `/sethourly` | 時報の設定。set: チャンネル設定 / unset: 解除 |
-
-時報は毎時0分に設定チャンネルへ送信。`data/jsons/hourly.json` でメッセージ・Embed・画像・ファイル添付を時間ごとに設定可能。
-
-### モデレーション
-
-| コマンド | 説明 |
-| --- | --- |
-| `/warn` | 警告発行。ポイント制・しきい値で自動タイムアウト・BAN |
-| `/warnings` | 警告履歴表示 |
-| `/clearwarn` | 警告削除（個別 / 全削除） |
-| `/kick` | キック |
-| `/ban` | BAN（メッセージ削除日数指定可能） |
-| `/unban` | BAN解除 |
-| `/timeout` | タイムアウト（最大28日） |
-| `/untimeout` | タイムアウト解除 |
-| `/slowmode` | 低速モード設定・解除 |
-| `/lock` | チャンネルロック・解除 |
-| `/role` | ロール付与・剥奪 |
-| `/note` | モデレーターノート管理（add / list / delete） |
-| `/modhistory` | モデレーション履歴表示 |
-| `/setmod` | モデレーション設定（ログチャンネル・警告しきい値） |
-| `/language` | 言語を変更（実装途中） |
-
-### 申請システム
-
-| コマンド/コマンド | 説明 |
-| --- | --- |
-| `!apply <内容> <コメント>` | 申請を送信。IDを自動生成しDMで通知 |
-| `!revoke <ID>` | 申請を取り消し |
-| `/apply-config` | 申請システム設定（channel / operator / notify / admin / view / export） |
+[日本語版のREADMEはこちら](./README.md)
 
 ---
 
-## セットアップ
+## Overview
 
-### 1. 依存パッケージのインストール
+Nexus is a Discord utility bot featuring moderation, hourly announcements, polls, and an application system. It uses slash commands as its primary interface, with data persistence via Turso (libSQL) and a Cloudflare Pages dashboard for configuration management.
+
+## Features
+
+### Moderation
+
+| Command | Description |
+| --- | --- |
+| `/warn` | Issue a warning to a user |
+| `/warnings` | View warning history |
+| `/clearwarn` | Delete a warning |
+| `/kick` | Kick a user |
+| `/ban` | Ban a user |
+| `/unban` | Unban a user |
+| `/timeout` | Set a timeout |
+| `/untimeout` | Remove a timeout |
+| `/slowmode` | Set slowmode |
+| `/lock` | Lock / unlock a channel |
+| `/role` | Grant / revoke a role |
+| `/note` | Add a note to a user |
+| `/modhistory` | View moderation history |
+| `/setmod` | Configure moderation settings (log channel, etc.) |
+
+### Utility
+
+| Command | Description |
+| --- | --- |
+| `/timer start` | Start a timer (minutes / seconds) |
+| `/timer stop` | Stop a timer |
+| `/clear` | Bulk delete messages (with user filter) |
+| `/poll` | Create a poll (anonymous, multi-choice, role-restricted) |
+| `/dice` | Weighted dice with buff / debuff mechanics |
+| `/afk set` | Set AFK status |
+| `/afk list` | List AFK users |
+| `/serverinfo` | Display server information |
+| `/userinfo` | Display user information |
+| `/lang` | Switch language (Japanese / English) |
+
+### Hourly Announcements
+
+| Command | Description |
+| --- | --- |
+| `/sethourly set` | Set the hourly announcement channel |
+| `/sethourly unset` | Disable hourly announcements |
+
+Configure per-hour and per-day-of-week messages (text, embed, image, file) via the dashboard.
+
+### Application System
+
+| Command | Description |
+| --- | --- |
+| `!apply <content> [comment]` | Submit an application |
+| `!revoke <ID>` | Cancel an application |
+| `/apply-config` | Configure the application system |
+
+Application management with approve / reject buttons. Application IDs are sent via DM or channel notification.
+
+## Tech Stack
+
+| Item | Technology |
+| --- | --- |
+| Runtime | Node.js 20+ (ESModule) |
+| Framework | discord.js v14 |
+| Database | Turso (libSQL) |
+| Hosting | GCP e2-micro |
+| CI/CD | GitHub Actions (SSH deploy) |
+| Dashboard | Cloudflare Pages + Workers |
+| License | AGPL-3.0 |
+
+## Database Tables
+
+```
+reminders        Timer reminders
+afk              AFK status
+warnings         Warnings
+mod_notes        Moderation notes
+mod_logs         Moderation logs
+mod_settings     Moderation settings
+settings         Server settings
+polls            Polls
+applications     Applications
+apply_settings   Application system settings
+guild_settings   Guild settings (retention periods, etc.)
+hourly_messages  Hourly announcement messages
+guild_lang       Language settings
+```
+
+## Project Structure
+
+```dir
+DiscordBot-Nexus/
+├── commands/
+│   ├── timer.js, clear.js, poll.js, dice.js
+│   ├── serverinfo.js, userinfo.js, afk.js, lang.js
+│   ├── sethourly.js
+│   ├── warn.js, warnings.js, clearwarn.js
+│   ├── kick.js, ban.js, unban.js
+│   ├── timeout.js, untimeout.js
+│   ├── slowmode.js, lock.js, role.js
+│   ├── note.js, modhistory.js, setmod.js
+│   └── apply-config.js
+├── events/
+│   ├── ready.js
+│   ├── interactionCreate.js
+│   ├── messageCreate.js
+│   ├── guildCreate.js
+│   └── guildDelete.js
+├── utils/
+│   ├── db.js
+│   ├── modLog.js
+│   ├── applyExport.js
+│   └── i18n.js
+├── data/
+│   └── jsons/lang/
+│       ├── ja.json
+│       └── en.json
+├── index.js
+├── deploy-commands.js
+├── Dockerfile
+└── package.json
+```
+
+## Setup
+
+### Prerequisites
+
+- Node.js 20+
+- Turso account and database
+- A Discord application created in the Discord Developer Portal
+
+### Installation
 
 ```bash
+git clone https://github.com/OCxeRu2951/DiscordBot-Nexus.git
+cd DiscordBot-Nexus
 npm install
 ```
 
-### 2. 環境変数の設定
+### Environment Variables
 
-`.env.example` をコピーして `.env` を作成し各値を入力する。
+Create a `.env` file in the project root:
 
-```bash
-cp .env.example .env
+```env
+DISCORD_TOKEN=your_bot_token
+CLIENT_ID=your_client_id
+TURSO_URL=libsql://your-db.turso.io
+TURSO_AUTH_TOKEN=your_turso_token
 ```
 
-| 変数 | 説明 |
-| --- | --- |
-| `DISCORD_TOKEN` | Bot Token（Discord Developer Portal > Bot） |
-| `CLIENT_ID` | ApplicationのID（General Information） |
-| `TURSO_URL` | TursoのDB URL |
-| `TURSO_AUTH_TOKEN` | Tursoの認証トークン |
+### Initialize Database
 
-### 3. Slash Commandの登録
+```bash
+node utils/db.js
+```
+
+### Register Commands
 
 ```bash
 node deploy-commands.js
 ```
 
-### 4. 起動
+### Start
 
 ```bash
 node index.js
+
+# Or with PM2
+pm2 start index.js --name nexus
 ```
 
----
+## Deployment (GCP)
 
-## デプロイ
-
-### GCP / Oracle Cloud / VPS（推奨）
+Automatic deployment via GitHub Actions is configured in the private repository. Pushing to the main branch automatically deploys to GCP e2-micro via SSH.
 
 ```bash
-# Node.js 20のインストール
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt-get install -y nodejs git
-
-# pm2のインストール
-sudo npm install -g pm2
-
-# リポジトリのクローン
-git clone https://github.com/your-repo/nexus.git
-cd nexus
-npm install
-
-# 環境変数・設定ファイルの作成
-cp .env.example .env
-
-# コマンド登録・起動
-node deploy-commands.js
-pm2 start index.js --name nexus
-pm2 save
-pm2 startup
+# Manual deployment
+ssh user@your-gcp-instance
+cd ~/DiscordBot-Nexus
+git pull origin main
+pm2 restart nexus
 ```
 
-### GitHub Actionsによる自動デプロイ
+## Version Roadmap
 
-リポジトリのSecretsに以下を登録する。
+| Version | Content | Status |
+| --- | --- | --- |
+| v0.7.0 | Application system | Done |
+| v0.8.0 | Moderation suite | Done |
+| v0.9.0 | Pomodoro / /botstatus | Planned |
+| v0.10.0 | Game commands | Planned |
+| v1.0.0 | Stable public release | Planned |
+| v1.1.0 | Day-of-week hourly, full i18n, guild_settings migration | Planned |
+| v1.2.0 | Multi-play recruitment system | Planned |
+| v1.3.0 | RSS feeds | Planned |
+| v1.4.0 | Dashboard additional features | Planned |
+| v2.0.0 | Paid plans, Rust (serenity) migration | Planned |
 
-| キー | 内容 |
-| --- | --- |
-| `GCP_HOST` または `ORACLE_HOST` | VMのパブリックIPアドレス |
-| `GCP_USER` または `ORACLE_USER` | SSHユーザー名 |
-| `GCP_SSH_KEY` または `ORACLE_SSH_KEY` | SSH秘密鍵 |
+## Related Repositories
 
----
+- [Nexus Dashboard](https://github.com/OCxeRu2951/Nexus-Dashboard) — Admin dashboard
+- [Nexus Pages](https://github.com/OCxeRu2951/Nexus-Pages) — Public info pages
 
-## ディレクトリ構成
+## License
 
-```dir
-nexus/
-├── .github/
-│   └── workflows/
-│       └── deploy.yml       # GitHub Actions自動デプロイ
-├── commands/
-│   ├── timer.js             # タイマー（start / stop）
-│   ├── clear.js             # メッセージ削除
-│   ├── poll.js              # 投票
-│   ├── dice.js              # ダイスロール
-│   ├── serverinfo.js        # サーバー情報
-│   ├── userinfo.js          # ユーザー情報
-│   ├── afk.js               # AFK管理
-│   ├── sethourly.js         # 時報設定
-│   ├── warn.js              # 警告発行
-│   ├── warnings.js          # 警告履歴
-│   ├── clearwarn.js         # 警告削除
-│   ├── kick.js              # キック
-│   ├── ban.js               # BAN
-│   ├── unban.js             # BAN解除
-│   ├── timeout.js           # タイムアウト
-│   ├── untimeout.js         # タイムアウト解除
-│   ├── slowmode.js          # 低速モード
-│   ├── lang.js              # 言語設定(実装中)
-│   ├── lock.js              # チャンネルロック
-│   ├── role.js              # ロール管理
-│   ├── note.js              # ノート管理
-│   ├── modhistory.js        # モデレーション履歴
-│   ├── setmod.js            # モデレーション設定
-│   └── apply-config.js      # 申請システム設定
-├── events/
-│   ├── guildCreate.js
-│   ├── guildDelete.js
-│   ├── ready.js             # 起動確認・時報・投票復元・クリーンアップ
-│   ├── interactionCreate.js # Slash Command・ボタンハンドラー
-│   └── messageCreate.js     # AFK検知・申請コマンド
-├── utils/
-│   ├── i18n.js
-│   ├── modLog.js
-│   ├── db.js                # DB接続・テーブル初期化
-│   ├── modLog.js            # モデレーションログ・自動エスカレーション
-│   └── applyExport.js       # 申請履歴エクスポート
-├── data/
-│   ├── jsons/lnag
-│   │   ├── ja.json          # 各種設定（Git管理外）
-│   │   └── en.json          # 各種設定サンプル
-│   ├── images/              # 時報添付画像
-│   └── other/               # その他添付ファイル
-├── index.js                 # エントリポイント
-├── deploy-commands.js       # Slash Command登録スクリプト
-├── Dockerfile
-├── .env.example
-├── .gitignore
-├── .dockerignore
-├── LICENSE                  # AGPL-3.0
-└── README.md
-```
+[AGPL-3.0](./LICENSE) © 2026 OCxeRu2951
 
----
-
-## ライセンス
-
-[AGPL-3.0](LICENSE)
-
----
+This software is released under the AGPL-3.0 license. Any modifications or distributions must also make the source code publicly available.
