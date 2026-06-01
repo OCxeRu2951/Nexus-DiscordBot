@@ -1,117 +1,64 @@
-import {
-  SlashCommandBuilder,
-  PermissionFlagsBits,
-  EmbedBuilder,
-} from "discord.js";
+import { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } from "discord.js";
 import { db } from "../utils/db.js";
-import { sendModLog } from "../utils/modLog.js";
+import { t } from "../utils/i18n.js";
 
 export default {
   data: new SlashCommandBuilder()
     .setName("note")
-    .setDescription("ユーザーへのモデレーターノートを管理します")
-    .addStringOption((opt) =>
-      opt
-        .setName("action")
-        .setDescription("操作を選択")
-        .setRequired(true)
-        .addChoices(
-          { name: "add", value: "add" },
-          { name: "list", value: "list" },
-          { name: "delete", value: "delete" },
-        ),
+    .setDescription("Manage notes for a user")
+    .addSubcommand((sub) =>
+      sub.setName("add").setDescription("Add a note")
+        .addUserOption((opt) => opt.setName("user").setDescription("Target user").setRequired(true))
+        .addStringOption((opt) => opt.setName("note").setDescription("Note content").setRequired(true)),
     )
-    .addUserOption((opt) =>
-      opt.setName("user").setDescription("対象ユーザー").setRequired(true),
+    .addSubcommand((sub) =>
+      sub.setName("list").setDescription("List notes")
+        .addUserOption((opt) => opt.setName("user").setDescription("Target user").setRequired(true)),
     )
-    .addStringOption((opt) =>
-      opt
-        .setName("content")
-        .setDescription("ノートの内容（action: add のみ）")
-        .setRequired(false),
-    )
-    .addIntegerOption((opt) =>
-      opt
-        .setName("note_id")
-        .setDescription("削除するノートのID（action: delete のみ）")
-        .setRequired(false),
+    .addSubcommand((sub) =>
+      sub.setName("delete").setDescription("Delete a note")
+        .addIntegerOption((opt) => opt.setName("id").setDescription("Note ID").setRequired(true)),
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
 
-  async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
+  async execute(interaction, client, lang) {
+    const sub = interaction.options.getSubcommand();
 
-    const action = interaction.options.getString("action");
-    const target = interaction.options.getUser("user");
-
-    if (action === "add") {
-      const content = interaction.options.getString("content");
-      if (!content)
-        return interaction.editReply("`content` を指定してください。");
-
+    if (sub === "add") {
+      const target = interaction.options.getUser("user");
+      const note   = interaction.options.getString("note");
       await db.execute({
-        sql: `INSERT INTO mod_notes (guild_id, user_id, moderator_id, note, created_at) VALUES (?, ?, ?, ?, ?)`,
-        args: [
-          interaction.guildId,
-          target.id,
-          interaction.user.id,
-          content,
-          Date.now(),
-        ],
+        sql:  `INSERT INTO mod_notes (guild_id, user_id, moderator_id, note, created_at) VALUES (?, ?, ?, ?, ?)`,
+        args: [interaction.guildId, target.id, interaction.user.id, note, Date.now()],
       });
-
-      await sendModLog(
-        interaction.guild,
-        "note",
-        target,
-        interaction.user,
-        content,
-      );
-      return interaction.editReply(`<@${target.id}> にノートを追加しました。`);
+      return interaction.reply({ content: t(lang, "commands.note.added", { userId: target.id }), ephemeral: true });
     }
 
-    if (action === "list") {
+    if (sub === "list") {
+      const target  = interaction.options.getUser("user");
       const { rows } = await db.execute({
-        sql: `SELECT * FROM mod_notes WHERE guild_id = ? AND user_id = ? ORDER BY created_at DESC`,
+        sql:  `SELECT * FROM mod_notes WHERE guild_id = ? AND user_id = ? ORDER BY created_at DESC`,
         args: [interaction.guildId, target.id],
       });
-
-      if (rows.length === 0)
-        return interaction.editReply(`<@${target.id}> のノートはありません。`);
+      if (rows.length === 0) return interaction.reply({ content: t(lang, "commands.note.empty", { userId: target.id }), ephemeral: true });
 
       const embed = new EmbedBuilder()
-        .setTitle(`📝 ${target.username} のノート`)
-        .setColor(0x95a5a6)
-        .setTimestamp();
+        .setTitle(t(lang, "commands.note.title", { username: target.username }))
+        .setColor(0x5865f2).setTimestamp();
 
-      embed.addFields(
-        rows.slice(0, 10).map((row, i) => ({
-          name: `#${row.id} — ${new Date(Number(row.created_at)).toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })}`,
-          value: `${row.note}\n実行者: <@${row.moderator_id}>`,
-        })),
-      );
-
-      return interaction.editReply({ embeds: [embed] });
+      for (const row of rows.slice(0, 10)) {
+        const date = new Date(Number(row.created_at)).toLocaleDateString(lang === "ja" ? "ja-JP" : "en-US");
+        embed.addFields({ name: `#${row.id} — ${date}`, value: t(lang, "commands.note.field", { note: row.note, moderator: row.moderator_id }), inline: false });
+      }
+      return interaction.reply({ embeds: [embed], ephemeral: true });
     }
 
-    if (action === "delete") {
-      const noteId = interaction.options.getInteger("note_id");
-      if (!noteId)
-        return interaction.editReply("`note_id` を指定してください。");
-
-      const { rows } = await db.execute({
-        sql: `SELECT * FROM mod_notes WHERE id = ? AND guild_id = ?`,
-        args: [noteId, interaction.guildId],
-      });
-
-      if (rows.length === 0)
-        return interaction.editReply("指定されたノートが見つかりません。");
-
-      await db.execute({
-        sql: `DELETE FROM mod_notes WHERE id = ?`,
-        args: [noteId],
-      });
-      return interaction.editReply(`ノートID \`${noteId}\` を削除しました。`);
+    if (sub === "delete") {
+      const id = interaction.options.getInteger("id");
+      const { rows } = await db.execute({ sql: `SELECT * FROM mod_notes WHERE id = ? AND guild_id = ?`, args: [id, interaction.guildId] });
+      if (rows.length === 0) return interaction.reply({ content: t(lang, "commands.note.not_found"), ephemeral: true });
+      await db.execute({ sql: `DELETE FROM mod_notes WHERE id = ?`, args: [id] });
+      return interaction.reply({ content: t(lang, "commands.note.deleted", { id }), ephemeral: true });
     }
   },
 };

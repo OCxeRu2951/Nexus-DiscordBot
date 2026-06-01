@@ -1,44 +1,25 @@
 import { SlashCommandBuilder, PermissionFlagsBits } from "discord.js";
+import { t } from "../utils/i18n.js";
 import { sendModLog } from "../utils/modLog.js";
 
 export default {
   data: new SlashCommandBuilder()
     .setName("untimeout")
-    .setDescription("ユーザーのタイムアウトを解除します")
-    .addUserOption((opt) =>
-      opt.setName("user").setDescription("対象ユーザー").setRequired(true),
-    )
-    .addStringOption((opt) =>
-      opt.setName("reason").setDescription("理由").setRequired(false),
-    )
+    .setDescription("Remove a timeout from a user")
+    .addUserOption((opt) => opt.setName("user").setDescription("Target user").setRequired(true))
+    .addStringOption((opt) => opt.setName("reason").setDescription("Reason").setRequired(false))
     .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
 
-  async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
-
+  async execute(interaction, client, lang) {
     const target = interaction.options.getUser("user");
-    const reason = interaction.options.getString("reason") ?? "なし";
-    const member = await interaction.guild.members
-      .fetch(target.id)
-      .catch(() => null);
+    const reason = interaction.options.getString("reason") ?? t(lang, "commands.common.no_reason");
+    const member = interaction.guild.members.cache.get(target.id);
 
-    if (!member)
-      return interaction.editReply("対象ユーザーがサーバーにいません。");
-    if (!member.isCommunicationDisabled())
-      return interaction.editReply(
-        "このユーザーはタイムアウトされていません。",
-      );
+    if (!member) return interaction.reply({ content: t(lang, "commands.untimeout.not_found"), ephemeral: true });
+    if (!member.isCommunicationDisabled()) return interaction.reply({ content: t(lang, "commands.untimeout.not_timeout"), ephemeral: true });
 
     await member.timeout(null, reason);
-    await sendModLog(
-      interaction.guild,
-      "untimeout",
-      target,
-      interaction.user,
-      reason,
-    );
-    await interaction.editReply(
-      `<@${target.id}> のタイムアウトを解除しました。`,
-    );
+    await interaction.reply(t(lang, "commands.untimeout.success", { userId: target.id }));
+    await sendModLog(interaction.client, interaction.guildId, { action: "untimeout", target, moderator: interaction.user, reason });
   },
 };

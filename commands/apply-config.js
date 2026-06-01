@@ -1,136 +1,48 @@
 import {
   SlashCommandBuilder,
   PermissionFlagsBits,
-  EmbedBuilder,
   ActionRowBuilder,
   ChannelSelectMenuBuilder,
   RoleSelectMenuBuilder,
   StringSelectMenuBuilder,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
   ChannelType,
+  EmbedBuilder,
 } from "discord.js";
 import { db } from "../utils/db.js";
+import { t } from "../utils/i18n.js";
 import { exportApplications } from "../utils/applyExport.js";
 
 export default {
   data: new SlashCommandBuilder()
     .setName("apply-config")
-    .setDescription("申請システムの設定を管理します")
+    .setDescription("Configure the application system")
     .addStringOption((opt) =>
-      opt
-        .setName("mode")
-        .setDescription("操作を選択")
-        .setRequired(true)
+      opt.setName("mode").setDescription("Mode").setRequired(true)
         .addChoices(
-          { name: "channel", value: "channel" },
-          { name: "operator", value: "operator" },
-          { name: "notify", value: "notify" },
-          { name: "admin", value: "admin" },
-          { name: "view", value: "view" },
-          { name: "export", value: "export" },
+          { name: "channel  — application channel",  value: "channel"  },
+          { name: "operator — notification role",    value: "operator" },
+          { name: "notify   — notification method",  value: "notify"   },
+          { name: "admin    — admin channel",        value: "admin"    },
+          { name: "view     — list applications",    value: "view"     },
+          { name: "export   — export CSV",           value: "export"   },
         ),
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
-  async execute(interaction) {
+  async execute(interaction, client, lang) {
     const mode = interaction.options.getString("mode");
-
-    // exportは管理者チャンネルのみ
-    if (mode === "export") {
-      const { rows } = await db
-        .execute({
-          sql: `SELECT admin_channel_id FROM apply_settings WHERE guild_id = ?`,
-          args: [interaction.guildId],
-        })
-        .catch(() => ({ rows: [] }));
-
-      const adminChannelId = rows[0]?.admin_channel_id;
-      if (!adminChannelId || interaction.channelId !== adminChannelId) {
-        return interaction.reply({
-          content: "このコマンドは管理者チャンネルでのみ使用できます。",
-          ephemeral: true,
-        });
-      }
-
-      await interaction.deferReply({ ephemeral: true });
-      const file = await exportApplications(interaction.guildId);
-      if (!file) {
-        return interaction.editReply("エクスポートするデータがありません。");
-      }
-      return interaction.editReply({
-        content: "申請履歴をエクスポートしました。",
-        files: [file],
-      });
-    }
-
-    if (mode === "view") {
-      const { rows } = await db
-        .execute({
-          sql: `SELECT * FROM apply_settings WHERE guild_id = ?`,
-          args: [interaction.guildId],
-        })
-        .catch(() => ({ rows: [] }));
-
-      const s = rows[0];
-      const embed = new EmbedBuilder()
-        .setTitle("⚙️ 申請システム設定")
-        .setColor(0x5865f2)
-        .addFields(
-          {
-            name: "申請チャンネル",
-            value: s?.apply_channel_id ? `<#${s.apply_channel_id}>` : "未設定",
-            inline: true,
-          },
-          {
-            name: "通知ロール",
-            value: s?.operator_role_id ? `<@&${s.operator_role_id}>` : "未設定",
-            inline: true,
-          },
-          { name: "通知方法", value: s?.notify_type ?? "未設定", inline: true },
-          {
-            name: "通知先",
-            value: s?.notify_target
-              ? s.notify_type === "channel"
-                ? `<#${s.notify_target}>`
-                : s.notify_target
-              : "未設定",
-            inline: true,
-          },
-          {
-            name: "管理者チャンネル",
-            value: s?.admin_channel_id ? `<#${s.admin_channel_id}>` : "未設定",
-            inline: true,
-          },
-        )
-        .setTimestamp();
-
-      return interaction.reply({ embeds: [embed], ephemeral: true });
-    }
 
     if (mode === "channel") {
       const row = new ActionRowBuilder().addComponents(
         new ChannelSelectMenuBuilder()
           .setCustomId("apply_config_channel")
-          .setPlaceholder("申請を受け付けるチャンネルを選択")
-          .addChannelTypes(
-            ChannelType.GuildText,
-            ChannelType.PublicThread,
-            ChannelType.PrivateThread,
-          ),
+          .setPlaceholder(lang === "ja" ? "申請チャンネルを選択" : "Select application channel")
+          .addChannelTypes(ChannelType.GuildText),
       );
       return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setTitle("📋 申請チャンネル設定")
-            .setDescription(
-              "申請を受け付けるチャンネルまたはスレッドを選択してください。",
-            )
-            .setColor(0x5865f2),
-        ],
+        content:    lang === "ja" ? "申請を受け付けるチャンネルを選択してください。" : "Select the channel for applications.",
         components: [row],
-        ephemeral: true,
+        ephemeral:  true,
       });
     }
 
@@ -138,38 +50,12 @@ export default {
       const row = new ActionRowBuilder().addComponents(
         new RoleSelectMenuBuilder()
           .setCustomId("apply_config_operator")
-          .setPlaceholder("通知を受け取るロールを選択"),
+          .setPlaceholder(lang === "ja" ? "通知ロールを選択" : "Select notification role"),
       );
       return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setTitle("👤 通知ロール設定")
-            .setDescription("申請通知を受け取るロールを選択してください。")
-            .setColor(0x5865f2),
-        ],
+        content:    lang === "ja" ? "申請通知を受け取るロールを選択してください。" : "Select the role to receive notifications.",
         components: [row],
-        ephemeral: true,
-      });
-    }
-
-    if (mode === "admin") {
-      const row = new ActionRowBuilder().addComponents(
-        new ChannelSelectMenuBuilder()
-          .setCustomId("apply_config_admin")
-          .setPlaceholder("管理者チャンネルを選択")
-          .addChannelTypes(ChannelType.GuildText),
-      );
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setTitle("🔒 管理者チャンネル設定")
-            .setDescription(
-              "管理者用チャンネルを選択してください。申請履歴のエクスポートはこのチャンネルでのみ可能です。",
-            )
-            .setColor(0x5865f2),
-        ],
-        components: [row],
-        ephemeral: true,
+        ephemeral:  true,
       });
     }
 
@@ -177,29 +63,70 @@ export default {
       const row = new ActionRowBuilder().addComponents(
         new StringSelectMenuBuilder()
           .setCustomId("apply_config_notify")
-          .setPlaceholder("通知方法を選択")
-          .addOptions(
-            {
-              label: "DM通知",
-              value: "dm",
-              description: "通知ロールのメンバーにDMで通知",
-            },
-            {
-              label: "チャンネル通知",
-              value: "channel",
-              description: "指定チャンネルに通知",
-            },
-          ),
+          .setPlaceholder(lang === "ja" ? "通知方法を選択" : "Select notification method")
+          .addOptions([
+            { label: lang === "ja" ? "DMで通知"         : "Notify via DM",      value: "dm"      },
+            { label: lang === "ja" ? "チャンネルに通知"  : "Notify to channel",  value: "channel" },
+          ]),
       );
       return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setTitle("🔔 通知方法設定")
-            .setDescription("通知方法を選択してください。")
-            .setColor(0x5865f2),
-        ],
+        content:    lang === "ja" ? "通知方法を選択してください。" : "Select a notification method.",
         components: [row],
-        ephemeral: true,
+        ephemeral:  true,
+      });
+    }
+
+    if (mode === "admin") {
+      const row = new ActionRowBuilder().addComponents(
+        new ChannelSelectMenuBuilder()
+          .setCustomId("apply_config_admin")
+          .setPlaceholder(lang === "ja" ? "管理者チャンネルを選択" : "Select admin channel")
+          .addChannelTypes(ChannelType.GuildText),
+      );
+      return interaction.reply({
+        content:    lang === "ja" ? "管理者チャンネルを選択してください。" : "Select the admin channel.",
+        components: [row],
+        ephemeral:  true,
+      });
+    }
+
+    if (mode === "view") {
+      const { rows } = await db.execute({
+        sql:  `SELECT * FROM applications WHERE guild_id = ? ORDER BY created_at DESC LIMIT 10`,
+        args: [interaction.guildId],
+      });
+
+      if (rows.length === 0) {
+        return interaction.reply({
+          content:   t(lang, "commands.apply.view_empty"),
+          ephemeral: true,
+        });
+      }
+
+      const embed = new EmbedBuilder()
+        .setTitle(t(lang, "commands.apply.view_title"))
+        .setColor(0x5865f2)
+        .setTimestamp();
+
+      for (const row of rows) {
+        const statusEmoji = { pending: "⏳", approved: "✅", rejected: "❌", revoked: "🚫" }[row.status] ?? "❓";
+        embed.addFields({
+          name:  `${statusEmoji} ${row.id}`,
+          value: `<@${row.user_id}> — ${row.content.slice(0, 50)}`,
+          inline: false,
+        });
+      }
+
+      return interaction.reply({ embeds: [embed], ephemeral: true });
+    }
+
+    if (mode === "export") {
+      await interaction.deferReply({ ephemeral: true });
+      const csv = await exportApplicationsCsv(interaction.guildId);
+      const buf = Buffer.from(csv, "utf-8");
+      return interaction.editReply({
+        content: t(lang, "commands.apply.export_done"),
+        files:   [{ attachment: buf, name: `applications_${interaction.guildId}.csv` }],
       });
     }
   },

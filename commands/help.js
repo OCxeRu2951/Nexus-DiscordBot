@@ -1,119 +1,98 @@
 import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
+import { t } from "../utils/i18n.js";
+
+const CATEGORIES = {
+  category_general: [
+    "afk", "timer", "sethourly", "poll", "clear",
+    "dice", "serverinfo", "userinfo",
+  ],
+  category_mod: [
+    "warn", "warnings", "clearwarn", "kick", "ban", "unban",
+    "timeout", "untimeout", "slowmode", "lock", "role",
+    "note", "modhistory", "setmod",
+  ],
+  category_apply: ["apply-config"],
+};
 
 export default {
   data: new SlashCommandBuilder()
     .setName("help")
-    .setDescription("コマンドの説明を表示します")
-    .addStringOption(
-      (opt) =>
-        opt
-          .setName("command")
-          .setDescription("説明を表示するコマンド名を入力（補完されます）")
-          .setRequired(false)
-          .setAutocomplete(true),
+    .setDescription("Display command information")
+    .addStringOption((opt) =>
+      opt
+        .setName("command")
+        .setDescription("Command name to display details")
+        .setRequired(false)
+        .setAutocomplete(true),
     ),
 
-  async execute(interaction) {
+  async execute(interaction, client, lang) {
     const commandName = interaction.options.getString("command");
     const { commands } = interaction.client;
 
-    // 特定のコマンドが指定された場合
+    // 特定コマンドの詳細表示
     if (commandName) {
       const command = commands.get(commandName);
 
       if (!command) {
         return interaction.reply({
-          content: "そのコマンドは見つかりませんでした。",
+          content:   t(lang, "commands.help.not_found"),
           ephemeral: true,
         });
       }
 
+      const options    = command.data.options ?? [];
+      const usageArgs  = options.map((o) => `${o.name}:<${o.name}>`).join(" ");
+      const optionList = options.length > 0
+        ? options.map((o) => `- \`${o.name}\`: ${o.description}`).join("\n")
+        : t(lang, "commands.help.options_none");
+
       const embed = new EmbedBuilder()
-        .setTitle(`/${command.data.name} コマンドの説明`)
+        .setTitle(t(lang, "commands.help.command_title", { name: command.data.name }))
         .setDescription(
           `**${command.data.description}**\n\n` +
-            "使用方法:\n" +
-            `\`/${command.data.name} ${command.data.options.map((o) => `${o.name}:<${o.name}>`).join(" ")}\`\n\n` +
-            "オプション:\n" +
-            (command.data.options
-              .map((o) => `- \`${o.name}\`: ${o.description}`)
-              .join("\n") || "なし"),
+          `**${t(lang, "commands.help.usage")}**\n` +
+          `\`/${command.data.name}${usageArgs ? " " + usageArgs : ""}\`\n\n` +
+          `**${t(lang, "commands.help.options")}**\n` +
+          optionList,
         )
         .setColor(0x5865f2)
         .setTimestamp();
 
-      return await interaction.reply({
-        embeds: [embed],
-        ephemeral: true,
-      });
+      return interaction.reply({ embeds: [embed], ephemeral: true });
     }
 
-    // コマンド指定がない場合（一覧表示）
-    const categories = {
-      全般: [
-        "afk",
-        "timer",
-        "sethourly",
-        "poll",
-        "clear",
-        "dice",
-        "serverinfo",
-        "userinfo",
-      ],
-      モデレーション: [
-        "warn",
-        "warnings",
-        "clearwarn",
-        "kick",
-        "ban",
-        "unban",
-        "timeout",
-        "untimeout",
-        "slowmode",
-        "lock",
-        "role",
-        "note",
-        "modhistory",
-        "setmod",
-      ],
-      申請システム: ["apply-config"], // メッセージコマンド(!apply等)は別途記載
-    };
-
+    // コマンド一覧表示
     const embed = new EmbedBuilder()
-      .setTitle("利用可能なコマンド一覧")
-      .setDescription("`/help command:<コマンド名>` で詳細を表示できます。")
+      .setTitle(t(lang, "commands.help.list_title"))
+      .setDescription(t(lang, "commands.help.list_desc"))
       .setColor(0x5865f2)
       .setTimestamp();
 
-    for (const [category, cmds] of Object.entries(categories)) {
+    for (const [categoryKey, cmds] of Object.entries(CATEGORIES)) {
       embed.addFields({
-        name: category,
-        value: cmds.map((c) => `\`/${c}\``).join(", ") || "設定なし",
+        name:  t(lang, `commands.help.${categoryKey}`),
+        value: cmds.map((c) => `\`/${c}\``).join(", ") || t(lang, "commands.help.options_none"),
       });
     }
 
-    // メッセージコマンド(Prefix用)の追記
     embed.addFields({
-      name: "申請システム (Prefix: !)",
-      value: "`!apply`, `!revoke`",
+      name:  t(lang, "commands.help.category_prefix"),
+      value: t(lang, "commands.help.prefix_commands"),
     });
 
-    await interaction.reply({
-      embeds: [embed],
-      ephemeral: true,
-    });
+    return interaction.reply({ embeds: [embed], ephemeral: true });
   },
 
-  // オートコンプリート機能を利用する場合
   async autocomplete(interaction) {
     const focusedValue = interaction.options.getFocused();
-    const { commands } = interaction.client;
-    const choices = Array.from(commands.keys());
-    const filtered = choices
-      .filter((choice) => choice.startsWith(focusedValue))
+    const choices      = Array.from(interaction.client.commands.keys());
+    const filtered     = choices
+      .filter((c) => c.startsWith(focusedValue))
       .slice(0, 25);
+
     await interaction.respond(
-      filtered.map((choice) => ({ name: choice, value: choice })),
+      filtered.map((c) => ({ name: c, value: c })),
     );
   },
 };

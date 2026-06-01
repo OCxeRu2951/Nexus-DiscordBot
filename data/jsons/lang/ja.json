@@ -1,6 +1,7 @@
 {
   "commands": {
     "afk": {
+      "description": "AFKを設定・一覧表示します",
       "set": "**{username}** をAFKに設定しました。\n理由: {reason}",
       "unset": "AFKを解除しました。",
       "list_empty": "現在AFK中のユーザーはいません。",
@@ -9,18 +10,25 @@
       "mention": "**{username}** は現在AFK中です（{elapsed}分前）\n理由: {reason}"
     },
     "timer": {
+      "description": "タイマーを開始・停止します",
       "start": "**{label}** を {time} 後にお知らせします。",
       "fired": "**{label}** の時間です！ ({time}経過)",
       "stopped": "**{label}** のタイマーを停止しました。",
       "no_active": "アクティブなタイマーが見つかりません。",
       "no_minutes": "`minutes` か `seconds` を1以上指定してください。",
-      "cancelled": "Bot再起動により **{label}** のタイマーがキャンセルされました。再度設定してください。"
+      "cancelled": "Bot再起動により **{label}** のタイマーがキャンセルされました。再度設定してください。",
+      "select_prompt": "停止するタイマーを選択してください。",
+      "select_placeholder": "停止するタイマーを選択",
+      "not_found": "タイマーが見つかりません（すでに終了した可能性があります）。",
+      "max_duration": "タイマーは最大 {max} まで設定できます。"
     },
     "clear": {
+      "description": "メッセージを一括削除します",
       "success": "{count} 件のメッセージを削除しました。",
       "fail": "削除に失敗しました。14日以内のメッセージのみ削除可能です。"
     },
     "poll": {
+      "description": "投票を作成します",
       "min_choices": "選択肢は2つ以上入力してください。",
       "footer_anonymous": "匿名投票",
       "footer_max": "最大{max}択",
@@ -33,6 +41,7 @@
       "ended": "投票終了"
     },
     "warn": {
+      "description": "ユーザーに警告を発行します",
       "self": "自分自身に警告を発行することはできません。",
       "success": "<@{userId}> に警告を発行しました。(+{points}pt / 累計: {total}pt)",
       "dm": "サーバー **{guild}** で警告を受けました。\n理由: {reason}\nポイント: +{points}pt（累計: {total}pt）",
@@ -41,7 +50,14 @@
       "history_footer": "累計: {total}pt / {count}件",
       "history_field": "理由: {reason}\nポイント: {points}pt\n実行者: <@{moderator}>"
     },
+    "warnings": {
+      "description": "警告履歴を表示します"
+    },
+    "clearwarn": {
+      "description": "警告を削除します"
+    },
     "kick": {
+      "description": "ユーザーをキックします",
       "not_found": "対象ユーザーがサーバーにいません。",
       "no_permission": "このユーザーをキックする権限がありません。",
       "self": "自分自身をキックすることはできません。",
@@ -49,16 +65,19 @@
       "dm": "**{guild}** からキックされました。\n理由: {reason}"
     },
     "ban": {
+      "description": "ユーザーをBANします",
       "self": "自分自身をBANすることはできません。",
       "no_permission": "このユーザーをBANする権限がありません。",
       "success": "<@{userId}> をBANしました。",
       "dm": "**{guild}** からBANされました。\n理由: {reason}"
     },
     "unban": {
+      "description": "BANを解除します",
       "not_banned": "指定されたユーザーはBANされていません。",
       "success": "<@{userId}> のBANを解除しました。"
     },
     "timeout": {
+      "description": "タイムアウトを設定します",
       "not_found": "対象ユーザーがサーバーにいません。",
       "no_permission": "このユーザーをタイムアウトする権限がありません。",
       "self": "自分自身をタイムアウトすることはできません。",
@@ -66,11 +85,13 @@
       "dm": "**{guild}** でタイムアウトされました。\n時間: {duration}\n理由: {reason}"
     },
     "untimeout": {
+      "description": "タイムアウトを解除します",
       "not_found": "対象ユーザーがサーバーにいません。",
       "not_timeout": "このユーザーはタイムアウトされていません。",
       "success": "<@{userId}> のタイムアウトを解除しました。"
     },
     "role": {
+      "description": "ロールを付与・剥奪します",
       "not_found": "対象ユーザーがサーバーにいません。",
       "too_high": "Botよりも上位のロールは操作できません。",
       "already_has": "対象ユーザーはすでにこのロールを持っています。",
@@ -79,16 +100,19 @@
       "remove_success": "<@{userId}> から <@&{roleId}> を剥奪しました。"
     },
     "slowmode": {
+      "description": "スローモードを設定します",
       "set": "<#{channelId}> の低速モードを {seconds}秒 に設定しました。",
       "unset": "<#{channelId}> の低速モードを解除しました。"
     },
     "lock": {
+      "description": "チャンネルをロック・解除します",
       "locked": "🔒 このチャンネルはロックされました。",
       "unlocked": "🔓 このチャンネルのロックを解除しました。",
       "lock_success": "<#{channelId}> をロックしました。",
       "unlock_success": "<#{channelId}> のロックを解除しました。"
     },
     "note": {
+      "description": "ユーザーのノートを管理します",
       "added": "<@{userId}> にノートを追加しました。",
       "empty": "<@{userId}> のノートはありません。",
       "deleted": "ノートID `{id}` を削除しました。",
@@ -96,28 +120,114 @@
       "title": "📝 {username} のノート",
       "field": "{note}\n実行者: <@{moderator}>"
     },
+    "modhistory": {
+      "description": "モデレーション履歴を表示します",
+      "empty": "<@{userId}> のモデレーション履歴はありません。",
+      "title": "🛡️ {username} のモデレーション履歴",
+      "field_reason": "理由",
+      "field_moderator": "実行者",
+      "none": "なし"
+    },
+    "setmod": {
+      "description": "モデレーション設定を行います",
+      "logchannel_set": "ログチャンネルを <#{channelId}> に設定しました。",
+      "threshold_set": "警告ポイントが {points}pt に達したとき **{action}** を実行します。"
+    },
     "sethourly": {
+      "description": "時報の設定を管理します",
       "set": "時報チャンネルを {channel} に設定しました。",
-      "unset": "時報を解除しました。"
+      "unset": "時報を解除しました。",
+      "no_channel": "`channel` を指定してください。"
+    },
+    "lang": {
+      "description": "Botの言語を設定します",
+      "set_ja": "言語を **日本語** に設定しました。",
+      "set_en": "Language set to **English**."
+    },
+    "dice": {
+      "description": "ダイスを振ります",
+      "buff_label":   "バフ（高い方）",
+      "debuff_label": "デバフ（低い方）"
+    },
+    "serverinfo": {
+      "description": "サーバー情報を表示します",
+      "owner":    "オーナー",
+      "members":  "メンバー数",
+      "channels": "チャンネル数",
+      "roles":    "ロール数",
+      "boost":    "Boostレベル",
+      "created":  "作成日"
+    },
+    "userinfo": {
+      "description": "ユーザー情報を表示します",
+      "created":   "アカウント作成日",
+      "joined":    "サーバー参加日",
+      "roles":     "ロール数",
+      "nickname":  "ニックネーム",
+      "none":      "なし"
+    },
+    "apply-config": {
+      "description": "申請システムの設定を行います"
     },
     "apply": {
+      "description": "申請を送信します",
       "accepted": "申請を受け付けました。IDをDMで送信しました。",
+      "accepted_no_dm": "⚠️ 申請を受け付けましたが、DMを送信できませんでした。下のボタンを押してIDを確認し、必ず控えてください。",
+      "show_id_btn": "IDを表示",
       "dm_id": "このIDは取り消し時に必要です。大切に保管してください。",
       "dm_title": "✅ 申請を受け付けました",
+      "id_title": "📋 申請ID",
       "wrong_channel": "申請はこのチャンネルでは行えません。",
       "usage": "使い方: `!apply <申請内容> <コメント>`",
       "revoke_usage": "使い方: `!revoke <ID>`",
       "not_found": "指定されたIDの申請が見つかりません。",
+      "not_applicant": "⚠️ この操作は申請者本人のみ実行できます。",
       "already": "この申請はすでに **{status}** です。取り消しできません。",
       "revoked": "申請 `{id}` を取り消しました。",
       "approved": "✅ 申請が承認されました",
       "rejected": "❌ 申請が拒否されました",
+      "moderated": "申請 `{id}` を **{status}** にしました。",
       "new_title": "📩 新規申請",
-      "cancel_title": "🚫 申請取り消し"
+      "cancel_title": "🚫 申請取り消し",
+      "field_content": "申請内容",
+      "field_comment": "コメント",
+      "field_status":  "ステータス",
+      "field_applicant": "申請者",
+      "field_server":  "サーバー",
+      "field_channel": "チャンネル",
+      "field_cancelled_by": "取り消し者",
+      "none": "なし",
+      "config_channel_set":          "申請チャンネルを <#{channelId}> に設定しました。",
+      "config_admin_set":            "管理者チャンネルを <#{channelId}> に設定しました。",
+      "config_role_set":             "通知ロールを <@&{roleId}> に設定しました。",
+      "config_notify_set":           "通知方法を **{notifyType}** に設定しました。",
+      "config_notify_channel_prompt":"通知チャンネルを選択してください。",
+      "config_notify_placeholder":   "通知チャンネルを選択",
+      "view_empty":  "申請はありません。",
+      "view_title":  "📩 申請一覧",
+      "export_done": "申請データをCSVで出力しました。",
+      "approve_btn": "✅ 承認",
+      "reject_btn":  "❌ 拒否"
     },
     "common": {
       "error": "コマンドの実行中にエラーが発生しました。",
-      "no_permission": "権限がありません。"
+      "no_permission": "権限がありません。",
+      "no_reason": "理由なし"
+    },
+    "help": {
+  "description": "コマンドの説明を表示します",
+  "not_found": "そのコマンドは見つかりませんでした。",
+  "command_title": "/{name} コマンドの説明",
+  "usage": "使用方法",
+  "options": "オプション",
+  "options_none": "なし",
+  "list_title": "利用可能なコマンド一覧",
+  "list_desc": "`/help command:<コマンド名>` で詳細を表示できます。",
+  "category_general": "全般",
+  "category_mod": "モデレーション",
+  "category_apply": "申請システム",
+  "category_prefix": "申請システム (Prefix: !)",
+  "prefix_commands": "`!apply`, `!revoke`"
     }
   },
   "automod": {

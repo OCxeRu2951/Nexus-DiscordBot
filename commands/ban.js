@@ -1,58 +1,28 @@
 import { SlashCommandBuilder, PermissionFlagsBits } from "discord.js";
+import { t } from "../utils/i18n.js";
 import { sendModLog } from "../utils/modLog.js";
 
 export default {
   data: new SlashCommandBuilder()
     .setName("ban")
-    .setDescription("ユーザーをBANします")
-    .addUserOption((opt) =>
-      opt.setName("user").setDescription("対象ユーザー").setRequired(true),
-    )
-    .addStringOption((opt) =>
-      opt.setName("reason").setDescription("理由").setRequired(false),
-    )
-    .addIntegerOption((opt) =>
-      opt
-        .setName("delete_days")
-        .setDescription("削除するメッセージの日数（0〜7）")
-        .setRequired(false)
-        .setMinValue(0)
-        .setMaxValue(7),
-    )
+    .setDescription("Ban a user")
+    .addUserOption((opt) => opt.setName("user").setDescription("Target user").setRequired(true))
+    .addStringOption((opt) => opt.setName("reason").setDescription("Reason").setRequired(false))
+    .addIntegerOption((opt) => opt.setName("delete_days").setDescription("Delete message days (0-7)").setRequired(false).setMinValue(0).setMaxValue(7))
     .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
 
-  async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
-
-    const target = interaction.options.getUser("user");
-    const reason = interaction.options.getString("reason") ?? "なし";
+  async execute(interaction, client, lang) {
+    const target     = interaction.options.getUser("user");
+    const reason     = interaction.options.getString("reason") ?? t(lang, "commands.common.no_reason");
     const deleteDays = interaction.options.getInteger("delete_days") ?? 0;
-    const member = await interaction.guild.members
-      .fetch(target.id)
-      .catch(() => null);
 
-    if (target.id === interaction.user.id)
-      return interaction.editReply("自分自身をBANすることはできません。");
-    if (member && !member.bannable)
-      return interaction.editReply("このユーザーをBANする権限がありません。");
+    if (target.id === interaction.user.id) return interaction.reply({ content: t(lang, "commands.ban.self"), ephemeral: true });
+    const member = interaction.guild.members.cache.get(target.id);
+    if (member && !member.bannable) return interaction.reply({ content: t(lang, "commands.ban.no_permission"), ephemeral: true });
 
-    await target
-      .send({
-        content: `**${interaction.guild.name}** からBANされました。\n理由: ${reason}`,
-      })
-      .catch(() => {});
-
-    await interaction.guild.members.ban(target.id, {
-      reason,
-      deleteMessageDays: deleteDays,
-    });
-    await sendModLog(
-      interaction.guild,
-      "ban",
-      target,
-      interaction.user,
-      reason,
-    );
-    await interaction.editReply(`<@${target.id}> をBANしました。`);
+    await target.send(t(lang, "commands.ban.dm", { guild: interaction.guild.name, reason })).catch(() => {});
+    await interaction.guild.members.ban(target.id, { reason, deleteMessageDays: deleteDays });
+    await interaction.reply(t(lang, "commands.ban.success", { userId: target.id }));
+    await sendModLog(interaction.client, interaction.guildId, { action: "ban", target, moderator: interaction.user, reason });
   },
 };

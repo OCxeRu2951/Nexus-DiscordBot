@@ -1,50 +1,27 @@
 import { SlashCommandBuilder, PermissionFlagsBits } from "discord.js";
+import { t } from "../utils/i18n.js";
 import { sendModLog } from "../utils/modLog.js";
 
 export default {
   data: new SlashCommandBuilder()
     .setName("kick")
-    .setDescription("ユーザーをキックします")
-    .addUserOption((opt) =>
-      opt.setName("user").setDescription("対象ユーザー").setRequired(true),
-    )
-    .addStringOption((opt) =>
-      opt.setName("reason").setDescription("理由").setRequired(false),
-    )
+    .setDescription("Kick a user")
+    .addUserOption((opt) => opt.setName("user").setDescription("Target user").setRequired(true))
+    .addStringOption((opt) => opt.setName("reason").setDescription("Reason").setRequired(false))
     .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers),
 
-  async execute(interaction) {
-    await interaction.deferReply({ ephemeral: true });
-
+  async execute(interaction, client, lang) {
     const target = interaction.options.getUser("user");
-    const reason = interaction.options.getString("reason") ?? "なし";
-    const member = await interaction.guild.members
-      .fetch(target.id)
-      .catch(() => null);
+    const reason = interaction.options.getString("reason") ?? t(lang, "commands.common.no_reason");
 
-    if (!member)
-      return interaction.editReply("対象ユーザーがサーバーにいません。");
-    if (!member.kickable)
-      return interaction.editReply(
-        "このユーザーをキックする権限がありません。",
-      );
-    if (target.id === interaction.user.id)
-      return interaction.editReply("自分自身をキックすることはできません。");
+    if (target.id === interaction.user.id) return interaction.reply({ content: t(lang, "commands.kick.self"), ephemeral: true });
+    const member = interaction.guild.members.cache.get(target.id);
+    if (!member) return interaction.reply({ content: t(lang, "commands.kick.not_found"), ephemeral: true });
+    if (!member.kickable) return interaction.reply({ content: t(lang, "commands.kick.no_permission"), ephemeral: true });
 
-    await target
-      .send({
-        content: `**${interaction.guild.name}** からキックされました。\n理由: ${reason}`,
-      })
-      .catch(() => {});
-
+    await target.send(t(lang, "commands.kick.dm", { guild: interaction.guild.name, reason })).catch(() => {});
     await member.kick(reason);
-    await sendModLog(
-      interaction.guild,
-      "kick",
-      target,
-      interaction.user,
-      reason,
-    );
-    await interaction.editReply(`<@${target.id}> をキックしました。`);
+    await interaction.reply(t(lang, "commands.kick.success", { userId: target.id }));
+    await sendModLog(interaction.client, interaction.guildId, { action: "kick", target, moderator: interaction.user, reason });
   },
 };

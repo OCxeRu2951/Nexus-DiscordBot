@@ -1,6 +1,7 @@
 {
   "commands": {
     "afk": {
+      "description": "Set or list AFK status",
       "set": "**{username}** is now AFK.\nReason: {reason}",
       "unset": "AFK has been cleared.",
       "list_empty": "No users are currently AFK.",
@@ -9,18 +10,25 @@
       "mention": "**{username}** is currently AFK ({elapsed} minutes ago)\nReason: {reason}"
     },
     "timer": {
+      "description": "Start or stop a timer",
       "start": "**{label}** will notify you in {time}.",
       "fired": "**{label}** time is up! ({time} elapsed)",
       "stopped": "Timer **{label}** has been stopped.",
       "no_active": "No active timer found.",
       "no_minutes": "Please specify at least 1 for `minutes` or `seconds`.",
-      "cancelled": "Timer **{label}** was cancelled due to Bot restart. Please set it again."
+      "cancelled": "Timer **{label}** was cancelled due to Bot restart. Please set it again.",
+      "select_prompt": "Select a timer to stop.",
+      "select_placeholder": "Select a timer to stop",
+      "not_found": "Timer not found (may have already ended).",
+      "max_duration": "Max timer duration is {max}."
     },
     "clear": {
+      "description": "Bulk delete messages",
       "success": "Deleted {count} messages.",
       "fail": "Failed to delete. Only messages within 14 days can be deleted."
     },
     "poll": {
+      "description": "Create a poll",
       "min_choices": "Please enter at least 2 choices.",
       "footer_anonymous": "Anonymous",
       "footer_max": "Max {max} choices",
@@ -33,6 +41,7 @@
       "ended": "Poll ended"
     },
     "warn": {
+      "description": "Issue a warning to a user",
       "self": "You cannot warn yourself.",
       "success": "Warning issued to <@{userId}>. (+{points}pt / Total: {total}pt)",
       "dm": "You received a warning in **{guild}**.\nReason: {reason}\nPoints: +{points}pt (Total: {total}pt)",
@@ -41,7 +50,14 @@
       "history_footer": "Total: {total}pt / {count} warnings",
       "history_field": "Reason: {reason}\nPoints: {points}pt\nModerator: <@{moderator}>"
     },
+    "warnings": {
+      "description": "View warning history"
+    },
+    "clearwarn": {
+      "description": "Delete a warning"
+    },
     "kick": {
+      "description": "Kick a user",
       "not_found": "Target user is not in this server.",
       "no_permission": "You do not have permission to kick this user.",
       "self": "You cannot kick yourself.",
@@ -49,16 +65,19 @@
       "dm": "You were kicked from **{guild}**.\nReason: {reason}"
     },
     "ban": {
+      "description": "Ban a user",
       "self": "You cannot ban yourself.",
       "no_permission": "You do not have permission to ban this user.",
       "success": "<@{userId}> has been banned.",
       "dm": "You were banned from **{guild}**.\nReason: {reason}"
     },
     "unban": {
+      "description": "Unban a user",
       "not_banned": "The specified user is not banned.",
       "success": "Unbanned <@{userId}>."
     },
     "timeout": {
+      "description": "Set a timeout for a user",
       "not_found": "Target user is not in this server.",
       "no_permission": "You do not have permission to timeout this user.",
       "self": "You cannot timeout yourself.",
@@ -66,11 +85,13 @@
       "dm": "You were timed out in **{guild}**.\nDuration: {duration}\nReason: {reason}"
     },
     "untimeout": {
+      "description": "Remove a timeout from a user",
       "not_found": "Target user is not in this server.",
       "not_timeout": "This user is not timed out.",
       "success": "Timeout removed for <@{userId}>."
     },
     "role": {
+      "description": "Grant or revoke a role",
       "not_found": "Target user is not in this server.",
       "too_high": "Cannot manage roles higher than the Bot's highest role.",
       "already_has": "The target user already has this role.",
@@ -79,16 +100,19 @@
       "remove_success": "Removed <@&{roleId}> from <@{userId}>."
     },
     "slowmode": {
+      "description": "Set slowmode for a channel",
       "set": "Slowmode for <#{channelId}> set to {seconds} seconds.",
       "unset": "Slowmode for <#{channelId}> has been disabled."
     },
     "lock": {
+      "description": "Lock or unlock a channel",
       "locked": "🔒 This channel has been locked.",
       "unlocked": "🔓 This channel has been unlocked.",
       "lock_success": "<#{channelId}> has been locked.",
       "unlock_success": "<#{channelId}> has been unlocked."
     },
     "note": {
+      "description": "Manage notes for a user",
       "added": "Note added for <@{userId}>.",
       "empty": "No notes for <@{userId}>.",
       "deleted": "Note `{id}` has been deleted.",
@@ -96,28 +120,114 @@
       "title": "📝 Notes: {username}",
       "field": "{note}\nModerator: <@{moderator}>"
     },
+    "modhistory": {
+      "description": "View moderation history for a user",
+      "empty": "No moderation history for <@{userId}>.",
+      "title": "🛡️ Moderation history: {username}",
+      "field_reason": "Reason",
+      "field_moderator": "Moderator",
+      "none": "None"
+    },
+    "setmod": {
+      "description": "Configure moderation settings",
+      "logchannel_set": "Log channel set to <#{channelId}>.",
+      "threshold_set": "When warning points reach {points}pt, **{action}** will be applied."
+    },
     "sethourly": {
+      "description": "Manage hourly announcement settings",
       "set": "Hourly announcement channel set to {channel}.",
-      "unset": "Hourly announcement has been disabled."
+      "unset": "Hourly announcement has been disabled.",
+      "no_channel": "Please specify a `channel`."
+    },
+    "lang": {
+      "description": "Set the Bot language",
+      "set_ja": "言語を **日本語** に設定しました。",
+      "set_en": "Language set to **English**."
+    },
+    "dice": {
+      "description": "Roll dice",
+      "buff_label":   "Buff (higher)",
+      "debuff_label": "Debuff (lower)"
+    },
+    "serverinfo": {
+      "description": "Display server information",
+      "owner":    "Owner",
+      "members":  "Members",
+      "channels": "Channels",
+      "roles":    "Roles",
+      "boost":    "Boost Tier",
+      "created":  "Created"
+    },
+    "userinfo": {
+      "description": "Display user information",
+      "created":   "Account Created",
+      "joined":    "Joined Server",
+      "roles":     "Roles",
+      "nickname":  "Nickname",
+      "none":      "None"
+    },
+    "apply-config": {
+      "description": "Configure the application system"
     },
     "apply": {
+      "description": "Submit an application",
       "accepted": "Application received. ID sent via DM.",
+      "accepted_no_dm": "⚠️ Application received, but DM could not be sent. Press the button below to view your ID and keep it safe.",
+      "show_id_btn": "Show ID",
       "dm_id": "Keep this ID safe. You will need it to cancel your application.",
       "dm_title": "✅ Application Received",
+      "id_title": "📋 Application ID",
       "wrong_channel": "Applications cannot be submitted in this channel.",
       "usage": "Usage: `!apply <content> <comment>`",
       "revoke_usage": "Usage: `!revoke <ID>`",
       "not_found": "No application found with the specified ID.",
+      "not_applicant": "⚠️ Only the applicant can perform this action.",
       "already": "This application is already **{status}**. Cannot cancel.",
       "revoked": "Application `{id}` has been cancelled.",
       "approved": "✅ Application Approved",
       "rejected": "❌ Application Rejected",
+      "moderated": "Application `{id}` has been set to **{status}**.",
       "new_title": "📩 New Application",
-      "cancel_title": "🚫 Application Cancelled"
+      "cancel_title": "🚫 Application Cancelled",
+      "field_content": "Content",
+      "field_comment": "Comment",
+      "field_status":  "Status",
+      "field_applicant": "Applicant",
+      "field_server":  "Server",
+      "field_channel": "Channel",
+      "field_cancelled_by": "Cancelled by",
+      "none": "None",
+      "config_channel_set":           "Application channel set to <#{channelId}>.",
+      "config_admin_set":             "Admin channel set to <#{channelId}>.",
+      "config_role_set":              "Notification role set to <@&{roleId}>.",
+      "config_notify_set":            "Notification method set to **{notifyType}**.",
+      "config_notify_channel_prompt": "Please select a notification channel.",
+      "config_notify_placeholder":    "Select notification channel",
+      "view_empty":  "No applications found.",
+      "view_title":  "📩 Applications",
+      "export_done": "Exported application data as CSV.",
+      "approve_btn": "✅ Approve",
+      "reject_btn":  "❌ Reject"
     },
     "common": {
       "error": "An error occurred while executing the command.",
-      "no_permission": "You do not have permission."
+      "no_permission": "You do not have permission.",
+      "no_reason": "No reason"
+    },
+    "help": {
+  "description": "Display command information",
+  "not_found": "That command was not found.",
+  "command_title": "/{name} Command Info",
+  "usage": "Usage",
+  "options": "Options",
+  "options_none": "None",
+  "list_title": "Available Commands",
+  "list_desc": "Use `/help command:<name>` to view details.",
+  "category_general": "General",
+  "category_mod": "Moderation",
+  "category_apply": "Application System",
+  "category_prefix": "Application System (Prefix: !)",
+  "prefix_commands": "`!apply`, `!revoke`"
     }
   },
   "automod": {

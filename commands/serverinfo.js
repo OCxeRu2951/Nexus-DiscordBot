@@ -1,30 +1,29 @@
-import { SlashCommandBuilder, EmbedBuilder } from 'discord.js';
+import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
+import { t } from "../utils/i18n.js";
 
 export default {
   data: new SlashCommandBuilder()
-    .setName('serverinfo')
-    .setDescription('サーバー情報を表示します'),
+    .setName("serverinfo")
+    .setDescription("Display server information"),
 
-  async execute(interaction) {
-    await interaction.deferReply();
+  async execute(interaction, client, lang) {
     const guild = interaction.guild;
     await guild.fetch();
 
     const embed = new EmbedBuilder()
       .setTitle(guild.name)
-      .setThumbnail(guild.iconURL({ dynamic: true }))
-      .setColor(0x57f287)
+      .setThumbnail(guild.iconURL())
+      .setColor(0x5865f2)
       .addFields(
-        { name: 'サーバーID', value: guild.id, inline: true },
-        { name: 'オーナー', value: `<@${guild.ownerId}>`, inline: true },
-        { name: 'メンバー数', value: `${guild.memberCount}人`, inline: true },
-        { name: 'チャンネル数', value: `${guild.channels.cache.size}`, inline: true },
-        { name: 'ロール数', value: `${guild.roles.cache.size}`, inline: true },
-        { name: 'Boostレベル', value: `Tier ${guild.premiumTier}`, inline: true },
-        { name: '作成日', value: `<t:${Math.floor(guild.createdTimestamp / 1000)}:D>`, inline: true },
+        { name: t(lang, "commands.serverinfo.owner"),    value: `<@${guild.ownerId}>`,                                              inline: true },
+        { name: t(lang, "commands.serverinfo.members"),  value: `${guild.memberCount}`,                                            inline: true },
+        { name: t(lang, "commands.serverinfo.channels"), value: `${guild.channels.cache.size}`,                                    inline: true },
+        { name: t(lang, "commands.serverinfo.roles"),    value: `${guild.roles.cache.size}`,                                       inline: true },
+        { name: t(lang, "commands.serverinfo.boost"),    value: `Level ${guild.premiumTier}`,                                      inline: true },
+        { name: t(lang, "commands.serverinfo.created"),  value: `<t:${Math.floor(guild.createdTimestamp / 1000)}:D>`,              inline: true },
       )
       .setTimestamp();
 
-    await interaction.editReply({ embeds: [embed] });
+    return interaction.reply({ embeds: [embed] });
   },
 };
