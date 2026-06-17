@@ -11,16 +11,24 @@
     },
     "timer": {
       "description": "Start or stop a timer",
+      "options": {
+        "action": "Action",
+        "minutes": "Minutes (0-180, start only)",
+        "seconds": "Seconds (0-59, start only)",
+        "label": "Timer label (start only)"
+      },
+      "no_active": "No active timer found.",
+      "remaining": "~{time} remaining",
+      "select_placeholder": "Select a timer to stop",
+      "select_prompt": "Select a timer to stop.",
+      "no_minutes": "Please specify at least 1 for `minutes` or `seconds`.",
+      "max_duration": "Timer duration cannot exceed {max}.",
+      "default_label": "Timer",
       "start": "**{label}** will notify you in {time}.",
       "fired": "**{label}** time is up! ({time} elapsed)",
+      "max_reached": "Timer **{label}** was automatically stopped after reaching the maximum duration.",
       "stopped": "Timer **{label}** has been stopped.",
-      "no_active": "No active timer found.",
-      "no_minutes": "Please specify at least 1 for `minutes` or `seconds`.",
-      "cancelled": "Timer **{label}** was cancelled due to Bot restart. Please set it again.",
-      "select_prompt": "Select a timer to stop.",
-      "select_placeholder": "Select a timer to stop",
-      "not_found": "Timer not found (may have already ended).",
-      "max_duration": "Max timer duration is {max}."
+      "not_found": "Timer not found (may have already ended)."
     },
     "clear": {
       "description": "Bulk delete messages",
@@ -43,18 +51,27 @@
     "warn": {
       "description": "Issue a warning to a user",
       "self": "You cannot warn yourself.",
+      "dm_title": "⚠️ You received a warning",
+      "dm_field_server": "Server",
+      "dm_field_reason": "Reason",
+      "dm_field_points": "Points",
+      "dm_points": "+{points}pt (Total: {total}pt)",
       "success": "Warning issued to <@{userId}>. (+{points}pt / Total: {total}pt)",
-      "dm": "You received a warning in **{guild}**.\nReason: {reason}\nPoints: +{points}pt (Total: {total}pt)",
       "history_empty": "No warning history for <@{userId}>.",
       "history_title": "⚠️ Warning History: {username}",
       "history_footer": "Total: {total}pt / {count} warnings",
-      "history_field": "Reason: {reason}\nPoints: {points}pt\nModerator: <@{moderator}>"
+      "history_field": "Reason: {reason}\nPoints: {points}pt\nModerator: <@{moderator}>",
+      "history_more": "Showing latest 10 of {count} total warnings."
     },
     "warnings": {
       "description": "View warning history"
     },
     "clearwarn": {
-      "description": "Delete a warning"
+      "description": "Delete a warning",
+      "no_id": "Please specify `warn_id`.",
+      "not_found": "The specified warning was not found.",
+      "deleted_id": "Warning ID `{id}` has been deleted.",
+      "deleted_all": "All warnings for <@{userId}> have been deleted. ({count} total)"
     },
     "kick": {
       "description": "Kick a user",
@@ -123,15 +140,38 @@
     "modhistory": {
       "description": "View moderation history for a user",
       "empty": "No moderation history for <@{userId}>.",
-      "title": "🛡️ Moderation history: {username}",
-      "field_reason": "Reason",
-      "field_moderator": "Moderator",
-      "none": "None"
+      "title": "📋 Moderation History: {username}",
+      "footer": "Latest 20 entries",
+      "field": "Reason: {reason}\nModerator: <@{moderator}>",
+      "action": {
+        "warn": "⚠️ Warning",
+        "timeout": "🔇 Timeout",
+        "untimeout": "🔊 Untimeout",
+        "kick": "👢 Kick",
+        "ban": "🔨 Ban",
+        "unban": "✅ Unban",
+        "lock": "🔒 Lock",
+        "unlock": "🔓 Unlock",
+        "slowmode": "🐢 Slowmode",
+        "note": "📝 Note",
+        "role_add": "➕ Role Added",
+        "role_remove": "➖ Role Removed"
+      }
     },
     "setmod": {
-      "description": "Configure moderation settings",
-      "logchannel_set": "Log channel set to <#{channelId}>.",
-      "threshold_set": "When warning points reach {points}pt, **{action}** will be applied."
+      "description": "Manage moderation settings",
+      "no_channel": "Please specify `channel`.",
+      "no_value": "Please specify at least one value to update.",
+      "log_set": "Log channel set to <#{channelId}>.",
+      "threshold_updated": "Thresholds have been updated.",
+      "view_title": "⚙️ Moderation Settings",
+      "field_log": "Log Channel",
+      "field_timeout_at": "Timeout Threshold",
+      "field_ban_at": "Ban Threshold",
+      "field_timeout_min": "Auto Timeout Duration",
+      "unset": "Not set",
+      "timeout_default": "60 min (default)",
+      "min": " min"
     },
     "sethourly": {
       "description": "Manage hourly announcement settings",
@@ -146,25 +186,38 @@
     },
     "dice": {
       "description": "Roll dice",
-      "buff_label":   "Buff (higher)",
-      "debuff_label": "Debuff (lower)"
+      "options": {
+        "sides": "Number of sides (2-100)",
+        "count": "Number of dice (1-10)",
+        "set": "Number of sets (1-10)",
+        "modifier": "Add/subtract from result",
+        "buff": "Bias toward high values (0-100%)",
+        "debuff": "Bias toward low values (0-100%)",
+        "show_odds": "Show probability info (default: false)"
+      },
+      "error_buff_debuff": "The sum of buff and debuff must be 200% or less.",
+      "set_unit": " sets",
+      "set_label": "Set {n}",
+      "total_avg": "Total: **{total}**  Average: **{avg}**",
+      "odds_title": "📊 Probability Info",
+      "odds_each": "Probability per face:"
     },
     "serverinfo": {
       "description": "Display server information",
-      "owner":    "Owner",
-      "members":  "Members",
+      "owner": "Owner",
+      "members": "Members",
       "channels": "Channels",
-      "roles":    "Roles",
-      "boost":    "Boost Tier",
-      "created":  "Created"
+      "roles": "Roles",
+      "boost": "Boost Tier",
+      "created": "Created"
     },
     "userinfo": {
       "description": "Display user information",
-      "created":   "Account Created",
-      "joined":    "Joined Server",
-      "roles":     "Roles",
-      "nickname":  "Nickname",
-      "none":      "None"
+      "created": "Account Created",
+      "joined": "Joined Server",
+      "roles": "Roles",
+      "nickname": "Nickname",
+      "none": "None"
     },
     "apply-config": {
       "description": "Configure the application system"
@@ -191,23 +244,23 @@
       "cancel_title": "🚫 Application Cancelled",
       "field_content": "Content",
       "field_comment": "Comment",
-      "field_status":  "Status",
+      "field_status": "Status",
       "field_applicant": "Applicant",
-      "field_server":  "Server",
+      "field_server": "Server",
       "field_channel": "Channel",
       "field_cancelled_by": "Cancelled by",
       "none": "None",
-      "config_channel_set":           "Application channel set to <#{channelId}>.",
-      "config_admin_set":             "Admin channel set to <#{channelId}>.",
-      "config_role_set":              "Notification role set to <@&{roleId}>.",
-      "config_notify_set":            "Notification method set to **{notifyType}**.",
+      "config_channel_set": "Application channel set to <#{channelId}>.",
+      "config_admin_set": "Admin channel set to <#{channelId}>.",
+      "config_role_set": "Notification role set to <@&{roleId}>.",
+      "config_notify_set": "Notification method set to **{notifyType}**.",
       "config_notify_channel_prompt": "Please select a notification channel.",
-      "config_notify_placeholder":    "Select notification channel",
-      "view_empty":  "No applications found.",
-      "view_title":  "📩 Applications",
+      "config_notify_placeholder": "Select notification channel",
+      "view_empty": "No applications found.",
+      "view_title": "📩 Applications",
       "export_done": "Exported application data as CSV.",
       "approve_btn": "✅ Approve",
-      "reject_btn":  "❌ Reject"
+      "reject_btn": "❌ Reject"
     },
     "common": {
       "error": "An error occurred while executing the command.",
@@ -215,19 +268,19 @@
       "no_reason": "No reason"
     },
     "help": {
-  "description": "Display command information",
-  "not_found": "That command was not found.",
-  "command_title": "/{name} Command Info",
-  "usage": "Usage",
-  "options": "Options",
-  "options_none": "None",
-  "list_title": "Available Commands",
-  "list_desc": "Use `/help command:<name>` to view details.",
-  "category_general": "General",
-  "category_mod": "Moderation",
-  "category_apply": "Application System",
-  "category_prefix": "Application System (Prefix: !)",
-  "prefix_commands": "`!apply`, `!revoke`"
+      "description": "Display command information",
+      "not_found": "That command was not found.",
+      "command_title": "/{name} Command Info",
+      "usage": "Usage",
+      "options": "Options",
+      "options_none": "None",
+      "list_title": "Available Commands",
+      "list_desc": "Use `/help command:<name>` to view details.",
+      "category_general": "General",
+      "category_mod": "Moderation",
+      "category_apply": "Application System",
+      "category_prefix": "Application System (Prefix: !)",
+      "prefix_commands": "`!apply`, `!revoke`"
     }
   },
   "automod": {

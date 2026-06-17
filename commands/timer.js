@@ -1,17 +1,27 @@
-import { SlashCommandBuilder, StringSelectMenuBuilder, ActionRowBuilder } from "discord.js";
+import {
+  SlashCommandBuilder,
+  ActionRowBuilder,
+  StringSelectMenuBuilder,
+} from "discord.js";
 import { db } from "../utils/db.js";
 import { getLang, t } from "../utils/i18n.js";
 
 const activeTimers = new Map();
 const MAX_MS = 3 * 60 * 60 * 1000;
 
-function formatTime(ms) {
+function formatTime(ms, lang) {
   const totalSec = Math.floor(ms / 1000);
   const m = Math.floor(totalSec / 60);
   const s = totalSec % 60;
-  if (m > 0 && s > 0) return `${m}分${s}秒`;
-  if (m > 0) return `${m}分`;
-  return `${s}秒`;
+  if (lang === "ja") {
+    if (m > 0 && s > 0) return `${m}分${s}秒`;
+    if (m > 0) return `${m}分`;
+    return `${s}秒`;
+  } else {
+    if (m > 0 && s > 0) return `${m}m ${s}s`;
+    if (m > 0) return `${m}m`;
+    return `${s}s`;
+  }
 }
 
 export default {
@@ -25,40 +35,64 @@ export default {
         .setRequired(true)
         .addChoices(
           { name: "start", value: "start" },
-          { name: "stop",  value: "stop"  },
+          { name: "stop", value: "stop" },
         ),
     )
     .addIntegerOption((opt) =>
-      opt.setName("minutes").setDescription("Minutes (0-180)").setRequired(false).setMinValue(0).setMaxValue(180),
+      opt
+        .setName("minutes")
+        .setDescription("Minutes (0-180, start only)")
+        .setRequired(false)
+        .setMinValue(0)
+        .setMaxValue(180),
     )
     .addIntegerOption((opt) =>
-      opt.setName("seconds").setDescription("Seconds (0-59)").setRequired(false).setMinValue(0).setMaxValue(59),
+      opt
+        .setName("seconds")
+        .setDescription("Seconds (0-59, start only)")
+        .setRequired(false)
+        .setMinValue(0)
+        .setMaxValue(59),
     )
     .addStringOption((opt) =>
-      opt.setName("label").setDescription("Label").setRequired(false),
+      opt
+        .setName("label")
+        .setDescription("Timer label (start only)")
+        .setRequired(false),
     ),
 
   async execute(interaction, client, lang) {
     const action = interaction.options.getString("action");
 
+    // ---- stop ----
     if (action === "stop") {
       const { rows } = await db.execute({
-        sql:  `SELECT * FROM reminders WHERE user_id = ? AND channel_id = ? AND fire_at > ? ORDER BY fire_at ASC`,
+        sql: `SELECT * FROM reminders WHERE user_id = ? AND channel_id = ? AND fire_at > ? ORDER BY fire_at ASC`,
         args: [interaction.user.id, interaction.channelId, Date.now()],
       });
 
       if (rows.length === 0) {
-        return interaction.reply({ content: t(lang, "commands.timer.no_active"), ephemeral: true });
+        return interaction.reply({
+          content: t(lang, "commands.timer.no_active"),
+          ephemeral: true,
+        });
       }
 
-      if (rows.length === 1) return stopTimer(interaction, rows[0], lang);
+      if (rows.length === 1) {
+        return stopTimer(interaction, rows[0], lang);
+      }
 
       const options = rows.slice(0, 25).map((r) => {
-        const remaining = Math.max(0, Math.floor((Number(r.fire_at) - Date.now()) / 1000));
+        const remaining = Math.max(
+          0,
+          Math.floor((Number(r.fire_at) - Date.now()) / 1000),
+        );
         return {
-          label:       r.label.slice(0, 100),
-          description: `残り約 ${formatTime(remaining * 1000)}`,
-          value:       String(r.id),
+          label: r.label.slice(0, 100),
+          description: t(lang, "commands.timer.remaining", {
+            time: formatTime(remaining * 1000, lang),
+          }),
+          value: String(r.id),
         };
       });
 
@@ -67,76 +101,126 @@ export default {
         .setPlaceholder(t(lang, "commands.timer.select_placeholder"))
         .addOptions(options);
 
+      const row = new ActionRowBuilder().addComponents(select);
+
       return interaction.reply({
-        content:    t(lang, "commands.timer.select_prompt"),
-        components: [new ActionRowBuilder().addComponents(select)],
-        ephemeral:  true,
+        content: t(lang, "commands.timer.select_prompt"),
+        components: [row],
+        ephemeral: true,
       });
     }
 
-    // start
+    // ---- start ----
     const minutes = interaction.options.getInteger("minutes") ?? 0;
     const seconds = interaction.options.getInteger("seconds") ?? 0;
     const totalMs = (minutes * 60 + seconds) * 1000;
 
     if (totalMs <= 0) {
-      return interaction.reply({ content: t(lang, "commands.timer.no_minutes"), ephemeral: true });
+      return interaction.reply({
+        content: t(lang, "commands.timer.no_minutes"),
+        ephemeral: true,
+      });
     }
+
     if (totalMs > MAX_MS) {
       return interaction.reply({
-        content:   t(lang, "commands.timer.max_duration", { max: formatTime(MAX_MS) }),
+        content: t(lang, "commands.timer.max_duration", {
+          max: formatTime(MAX_MS, lang),
+        }),
         ephemeral: true,
       });
     }
 
     await interaction.deferReply();
 
-    const label   = interaction.options.getString("label") ?? (lang === "ja" ? "タイマー" : "Timer");
-    const fireAt  = Date.now() + totalMs;
-    const timeStr = formatTime(totalMs);
+    const label =
+      interaction.options.getString("label") ??
+      t(lang, "commands.timer.default_label");
+    const fireAt = Date.now() + totalMs;
+    const timeStr = formatTime(totalMs, lang);
 
     const result = await db.execute({
-      sql:  `INSERT INTO reminders (user_id, channel_id, label, fire_at) VALUES (?, ?, ?, ?)`,
+      sql: `INSERT INTO reminders (user_id, channel_id, label, fire_at) VALUES (?, ?, ?, ?)`,
       args: [interaction.user.id, interaction.channelId, label, fireAt],
     });
     const reminderId = Number(result.lastInsertRowid);
 
-    await interaction.editReply(t(lang, "commands.timer.start", { label, time: timeStr }));
+    await interaction.editReply(
+      t(lang, "commands.timer.start", { label, time: timeStr }),
+    );
 
+    // タイマー発火
     const timeoutId = setTimeout(async () => {
       await interaction
-        .followUp(`${interaction.user} ` + t(lang, "commands.timer.fired", { label, time: timeStr }))
+        .followUp(
+          `${interaction.user} ` +
+            t(lang, "commands.timer.fired", { label, time: timeStr }),
+        )
         .catch(() => {});
       activeTimers.delete(reminderId);
-      await db.execute({ sql: `DELETE FROM reminders WHERE id = ?`, args: [reminderId] }).catch(() => {});
+      await db
+        .execute({
+          sql: `DELETE FROM reminders WHERE id = ?`,
+          args: [reminderId],
+        })
+        .catch(() => {});
     }, totalMs);
 
     activeTimers.set(reminderId, timeoutId);
+
+    // MAX_MS超過の場合の安全停止（start時点で弾いているが念のため）
+    if (totalMs >= MAX_MS) {
+      const safetyId = setTimeout(async () => {
+        const existing = activeTimers.get(reminderId);
+        if (existing) {
+          clearTimeout(existing);
+          activeTimers.delete(reminderId);
+        }
+        await db
+          .execute({
+            sql: `DELETE FROM reminders WHERE id = ?`,
+            args: [reminderId],
+          })
+          .catch(() => {});
+        await interaction
+          .followUp(t(lang, "commands.timer.max_reached", { label }))
+          .catch(() => {});
+      }, MAX_MS);
+      activeTimers.set(reminderId, safetyId);
+      clearTimeout(timeoutId);
+    }
   },
 };
 
+// ---- helper ----
 async function stopTimer(interaction, row, lang) {
   const timeoutId = activeTimers.get(Number(row.id));
   if (timeoutId) {
     clearTimeout(timeoutId);
     activeTimers.delete(Number(row.id));
   }
-  await db.execute({ sql: `DELETE FROM reminders WHERE id = ?`, args: [row.id] });
-  return interaction.reply(t(lang, "commands.timer.stopped", { label: row.label }));
+  await db.execute({
+    sql: `DELETE FROM reminders WHERE id = ?`,
+    args: [row.id],
+  });
+  return interaction.reply(
+    t(lang, "commands.timer.stopped", { label: row.label }),
+  );
 }
 
-export async function handleTimerStopSelect(interaction, lang) {
-  const resolvedLang = lang ?? await getLang(interaction.guildId);
-  const reminderId   = Number(interaction.values[0]);
+// interactionCreate.js から呼ばれるセレクトメニューハンドラ
+export async function handleTimerStopSelect(interaction) {
+  const lang = await getLang(interaction.guildId);
+  const reminderId = Number(interaction.values[0]);
 
   const { rows } = await db.execute({
-    sql:  `SELECT * FROM reminders WHERE id = ?`,
+    sql: `SELECT * FROM reminders WHERE id = ?`,
     args: [reminderId],
   });
 
   if (rows.length === 0) {
     return interaction.update({
-      content:    t(resolvedLang, "commands.timer.not_found"),
+      content: t(lang, "commands.timer.not_found"),
       components: [],
     });
   }
@@ -147,10 +231,13 @@ export async function handleTimerStopSelect(interaction, lang) {
     activeTimers.delete(reminderId);
   }
 
-  await db.execute({ sql: `DELETE FROM reminders WHERE id = ?`, args: [reminderId] });
+  await db.execute({
+    sql: `DELETE FROM reminders WHERE id = ?`,
+    args: [reminderId],
+  });
 
   return interaction.update({
-    content:    t(resolvedLang, "commands.timer.stopped", { label: rows[0].label }),
+    content: t(lang, "commands.timer.stopped", { label: rows[0].label }),
     components: [],
   });
 }
