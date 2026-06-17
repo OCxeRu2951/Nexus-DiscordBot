@@ -150,8 +150,8 @@ export default {
 
     // DB保存
     const result = await db.execute({
-      sql:  `INSERT INTO polls (guild_id, channel_id, message_id, question, choices, anonymous, max_choices, role_id, end_at, hide_results, created_by)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      sql:  `INSERT INTO polls (guild_id, channel_id, message_id, question, choices, anonymous, max_choices, required_role, end_at, hide_results, created_by)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       args: [
         interaction.guildId,
         interaction.channelId,

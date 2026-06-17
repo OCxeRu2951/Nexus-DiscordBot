@@ -71,7 +71,7 @@ export async function initDb() {
         end_at        INTEGER,
         anonymous     INTEGER NOT NULL DEFAULT 0,
         max_choices   INTEGER NOT NULL DEFAULT 1,
-        role_id TEXT,
+        required_role TEXT,
         hide_results  INTEGER NOT NULL DEFAULT 0,
         created_by    TEXT    NOT NULL
       )`,

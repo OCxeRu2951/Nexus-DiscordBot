@@ -12,6 +12,13 @@ export default {
     // ---- ボタン処理 ----
     if (interaction.isButton()) {
       const { customId } = interaction;
+      if (customId.startsWith("poll_vote_")) {
+        const [, , pollId, choiceIdx] = customId.split("_");
+        return interaction.reply({
+          content: t(lang, "commands.poll.voted", { pollId, choiceIdx: Number(choiceIdx) + 1 }),
+          ephemeral: true,
+        });
+      }
 
       if (customId.startsWith("show_id|")) {
         const [, userId, appId] = customId.split("|");

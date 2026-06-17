@@ -46,7 +46,8 @@
       "result_title": "📊 Poll Results: {question}",
       "result_footer": "Total votes: {total}",
       "result_none": "No votes",
-      "ended": "Poll ended"
+      "ended": "Poll ended",
+      "voted": "You have voted in poll `{pollId}` for option `{choiceIdx}`."
     },
     "warn": {
       "description": "Issue a warning to a user",
