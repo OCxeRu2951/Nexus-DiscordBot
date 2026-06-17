@@ -71,8 +71,9 @@ export async function initDb() {
         end_at        INTEGER,
         anonymous     INTEGER NOT NULL DEFAULT 0,
         max_choices   INTEGER NOT NULL DEFAULT 1,
-        required_role TEXT,
-        hide_results  INTEGER NOT NULL DEFAULT 0
+        role_id TEXT,
+        hide_results  INTEGER NOT NULL DEFAULT 0,
+        created_by    TEXT    NOT NULL
       )`,
       `CREATE TABLE IF NOT EXISTS applications (
         id          TEXT    PRIMARY KEY,
