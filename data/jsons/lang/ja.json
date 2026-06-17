@@ -11,16 +11,24 @@
     },
     "timer": {
       "description": "タイマーを開始・停止します",
+      "options": {
+        "action": "操作を選択",
+        "minutes": "分数 (0〜180)（start のみ）",
+        "seconds": "秒数 (0〜59)（start のみ）",
+        "label": "タイマーのラベル（start のみ）"
+      },
+      "no_active": "アクティブなタイマーが見つかりません。",
+      "remaining": "残り約 {time}",
+      "select_placeholder": "停止するタイマーを選択",
+      "select_prompt": "停止するタイマーを選択してください。",
+      "no_minutes": "`minutes` か `seconds` を1以上指定してください。",
+      "max_duration": "タイマーは最大 {max} まで設定できます。",
+      "default_label": "タイマー",
       "start": "**{label}** を {time} 後にお知らせします。",
       "fired": "**{label}** の時間です！ ({time}経過)",
+      "max_reached": "**{label}** のタイマーが最大時間に達したため自動停止しました。",
       "stopped": "**{label}** のタイマーを停止しました。",
-      "no_active": "アクティブなタイマーが見つかりません。",
-      "no_minutes": "`minutes` か `seconds` を1以上指定してください。",
-      "cancelled": "Bot再起動により **{label}** のタイマーがキャンセルされました。再度設定してください。",
-      "select_prompt": "停止するタイマーを選択してください。",
-      "select_placeholder": "停止するタイマーを選択",
-      "not_found": "タイマーが見つかりません（すでに終了した可能性があります）。",
-      "max_duration": "タイマーは最大 {max} まで設定できます。"
+      "not_found": "タイマーが見つかりません（すでに終了した可能性があります）。"
     },
     "clear": {
       "description": "メッセージを一括削除します",
@@ -43,18 +51,27 @@
     "warn": {
       "description": "ユーザーに警告を発行します",
       "self": "自分自身に警告を発行することはできません。",
-      "success": "<@{userId}> に警告を発行しました。(+{points}pt / 累計: {total}pt)",
-      "dm": "サーバー **{guild}** で警告を受けました。\n理由: {reason}\nポイント: +{points}pt（累計: {total}pt）",
+      "dm_title": "⚠️ 警告を受けました",
+      "dm_field_server": "サーバー",
+      "dm_field_reason": "理由",
+      "dm_field_points": "ポイント",
+      "dm_points": "+{points}pt（累計: {total}pt）",
+      "success": "<@{userId}> に警告を発行しました。（+{points}pt / 累計: {total}pt）",
       "history_empty": "<@{userId}> の警告履歴はありません。",
       "history_title": "⚠️ {username} の警告履歴",
       "history_footer": "累計: {total}pt / {count}件",
-      "history_field": "理由: {reason}\nポイント: {points}pt\n実行者: <@{moderator}>"
+      "history_field": "理由: {reason}\nポイント: {points}pt\n実行者: <@{moderator}>",
+      "history_more": "※ 最新10件を表示しています（全{count}件）"
     },
     "warnings": {
       "description": "警告履歴を表示します"
     },
     "clearwarn": {
-      "description": "警告を削除します"
+      "description": "警告を削除します",
+      "no_id": "`warn_id` を指定してください。",
+      "not_found": "指定された警告が見つかりません。",
+      "deleted_id": "警告ID `{id}` を削除しました。",
+      "deleted_all": "<@{userId}> の警告を全て削除しました。（{count}件）"
     },
     "kick": {
       "description": "ユーザーをキックします",
@@ -121,17 +138,40 @@
       "field": "{note}\n実行者: <@{moderator}>"
     },
     "modhistory": {
-      "description": "モデレーション履歴を表示します",
+      "description": "ユーザーのモデレーション履歴を表示します",
       "empty": "<@{userId}> のモデレーション履歴はありません。",
-      "title": "🛡️ {username} のモデレーション履歴",
-      "field_reason": "理由",
-      "field_moderator": "実行者",
-      "none": "なし"
+      "title": "📋 {username} のモデレーション履歴",
+      "footer": "最新20件",
+      "field": "理由: {reason}\n実行者: <@{moderator}>",
+      "action": {
+        "warn": "⚠️ 警告",
+        "timeout": "🔇 タイムアウト",
+        "untimeout": "🔊 タイムアウト解除",
+        "kick": "👢 キック",
+        "ban": "🔨 BAN",
+        "unban": "✅ BAN解除",
+        "lock": "🔒 ロック",
+        "unlock": "🔓 ロック解除",
+        "slowmode": "🐢 低速モード",
+        "note": "📝 ノート",
+        "role_add": "➕ ロール付与",
+        "role_remove": "➖ ロール剥奪"
+      }
     },
     "setmod": {
-      "description": "モデレーション設定を行います",
-      "logchannel_set": "ログチャンネルを <#{channelId}> に設定しました。",
-      "threshold_set": "警告ポイントが {points}pt に達したとき **{action}** を実行します。"
+      "description": "モデレーション設定を管理します",
+      "no_channel": "`channel` を指定してください。",
+      "no_value": "設定する値を指定してください。",
+      "log_set": "ログチャンネルを <#{channelId}> に設定しました。",
+      "threshold_updated": "しきい値を更新しました。",
+      "view_title": "⚙️ モデレーション設定",
+      "field_log": "ログチャンネル",
+      "field_timeout_at": "タイムアウトしきい値",
+      "field_ban_at": "BANしきい値",
+      "field_timeout_min": "自動タイムアウト時間",
+      "unset": "未設定",
+      "timeout_default": "60分（デフォルト）",
+      "min": "分"
     },
     "sethourly": {
       "description": "時報の設定を管理します",
@@ -146,25 +186,38 @@
     },
     "dice": {
       "description": "ダイスを振ります",
-      "buff_label":   "バフ（高い方）",
-      "debuff_label": "デバフ（低い方）"
+      "options": {
+        "sides": "ダイスの面数（2〜100）",
+        "count": "ダイスの個数（1〜10）",
+        "set": "振る回数（1〜10）",
+        "modifier": "結果への加減算",
+        "buff": "高い目への偏り（0〜100%）",
+        "debuff": "低い目への偏り（0〜100%）",
+        "show_odds": "確率情報を表示するか（デフォルト: false）"
+      },
+      "error_buff_debuff": "buff と debuff の合計は200%以下にしてください。",
+      "set_unit": "セット",
+      "set_label": "セット{n}",
+      "total_avg": "合計: **{total}**　平均: **{avg}**",
+      "odds_title": "📊 確率情報",
+      "odds_each": "各面の出現確率:"
     },
     "serverinfo": {
       "description": "サーバー情報を表示します",
-      "owner":    "オーナー",
-      "members":  "メンバー数",
+      "owner": "オーナー",
+      "members": "メンバー数",
       "channels": "チャンネル数",
-      "roles":    "ロール数",
-      "boost":    "Boostレベル",
-      "created":  "作成日"
+      "roles": "ロール数",
+      "boost": "Boostレベル",
+      "created": "作成日"
     },
     "userinfo": {
       "description": "ユーザー情報を表示します",
-      "created":   "アカウント作成日",
-      "joined":    "サーバー参加日",
-      "roles":     "ロール数",
-      "nickname":  "ニックネーム",
-      "none":      "なし"
+      "created": "アカウント作成日",
+      "joined": "サーバー参加日",
+      "roles": "ロール数",
+      "nickname": "ニックネーム",
+      "none": "なし"
     },
     "apply-config": {
       "description": "申請システムの設定を行います"
@@ -191,23 +244,23 @@
       "cancel_title": "🚫 申請取り消し",
       "field_content": "申請内容",
       "field_comment": "コメント",
-      "field_status":  "ステータス",
+      "field_status": "ステータス",
       "field_applicant": "申請者",
-      "field_server":  "サーバー",
+      "field_server": "サーバー",
       "field_channel": "チャンネル",
       "field_cancelled_by": "取り消し者",
       "none": "なし",
-      "config_channel_set":          "申請チャンネルを <#{channelId}> に設定しました。",
-      "config_admin_set":            "管理者チャンネルを <#{channelId}> に設定しました。",
-      "config_role_set":             "通知ロールを <@&{roleId}> に設定しました。",
-      "config_notify_set":           "通知方法を **{notifyType}** に設定しました。",
-      "config_notify_channel_prompt":"通知チャンネルを選択してください。",
-      "config_notify_placeholder":   "通知チャンネルを選択",
-      "view_empty":  "申請はありません。",
-      "view_title":  "📩 申請一覧",
+      "config_channel_set": "申請チャンネルを <#{channelId}> に設定しました。",
+      "config_admin_set": "管理者チャンネルを <#{channelId}> に設定しました。",
+      "config_role_set": "通知ロールを <@&{roleId}> に設定しました。",
+      "config_notify_set": "通知方法を **{notifyType}** に設定しました。",
+      "config_notify_channel_prompt": "通知チャンネルを選択してください。",
+      "config_notify_placeholder": "通知チャンネルを選択",
+      "view_empty": "申請はありません。",
+      "view_title": "📩 申請一覧",
       "export_done": "申請データをCSVで出力しました。",
       "approve_btn": "✅ 承認",
-      "reject_btn":  "❌ 拒否"
+      "reject_btn": "❌ 拒否"
     },
     "common": {
       "error": "コマンドの実行中にエラーが発生しました。",
@@ -215,19 +268,19 @@
       "no_reason": "理由なし"
     },
     "help": {
-  "description": "コマンドの説明を表示します",
-  "not_found": "そのコマンドは見つかりませんでした。",
-  "command_title": "/{name} コマンドの説明",
-  "usage": "使用方法",
-  "options": "オプション",
-  "options_none": "なし",
-  "list_title": "利用可能なコマンド一覧",
-  "list_desc": "`/help command:<コマンド名>` で詳細を表示できます。",
-  "category_general": "全般",
-  "category_mod": "モデレーション",
-  "category_apply": "申請システム",
-  "category_prefix": "申請システム (Prefix: !)",
-  "prefix_commands": "`!apply`, `!revoke`"
+      "description": "コマンドの説明を表示します",
+      "not_found": "そのコマンドは見つかりませんでした。",
+      "command_title": "/{name} コマンドの説明",
+      "usage": "使用方法",
+      "options": "オプション",
+      "options_none": "なし",
+      "list_title": "利用可能なコマンド一覧",
+      "list_desc": "`/help command:<コマンド名>` で詳細を表示できます。",
+      "category_general": "全般",
+      "category_mod": "モデレーション",
+      "category_apply": "申請システム",
+      "category_prefix": "申請システム (Prefix: !)",
+      "prefix_commands": "`!apply`, `!revoke`"
     }
   },
   "automod": {
