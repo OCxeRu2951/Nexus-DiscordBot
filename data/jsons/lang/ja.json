@@ -46,7 +46,8 @@
       "result_title": "📊 投票結果: {question}",
       "result_footer": "総投票数: {total}",
       "result_none": "投票なし",
-      "ended": "投票終了"
+      "ended": "投票終了",
+      "voted": "あなたは投票ID `{pollId}` の投票で選択肢 `{choiceIdx}` を選択しました。"
     },
     "warn": {
       "description": "ユーザーに警告を発行します",
