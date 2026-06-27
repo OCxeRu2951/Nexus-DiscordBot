@@ -116,6 +116,13 @@ export async function initDb() {
         guild_id TEXT PRIMARY KEY,
         lang     TEXT NOT NULL DEFAULT 'ja'
       )`,
+      `CREATE TABLE IF NOT EXISTS poll_votes (
+        id        INTEGER PRIMARY KEY AUTOINCREMENT,
+        poll_id   INTEGER NOT NULL,
+        user_id   TEXT    NOT NULL,
+        choice    INTEGER NOT NULL,
+        voted_at  INTEGER NOT NULL
+      )`,
     ],
     "write",
   );

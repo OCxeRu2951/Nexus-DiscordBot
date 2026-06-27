@@ -47,7 +47,13 @@
       "result_footer": "総投票数: {total}",
       "result_none": "投票なし",
       "ended": "投票終了",
-      "voted": "あなたは投票ID `{pollId}` の投票で選択肢 `{choiceIdx}` を選択しました。"
+      "vote_success": "✅ **{choice}** に投票しました。",
+      "vote_removed": "🗑️ 投票を取り消しました。",
+      "vote_max": "最大 {max} 個まで選択できます。",
+      "vote_anonymous": "✅ 匿名投票を記録しました。",
+      "vote_role": "この投票に必要なロールがありません。",
+      "vote_ended": "この投票はすでに終了しています。",
+      "vote_not_found": "投票が見つかりません。"
     },
     "warn": {
       "description": "ユーザーに警告を発行します",
