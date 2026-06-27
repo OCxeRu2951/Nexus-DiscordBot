@@ -47,7 +47,13 @@
       "result_footer": "Total votes: {total}",
       "result_none": "No votes",
       "ended": "Poll ended",
-      "voted": "You have voted in poll `{pollId}` for option `{choiceIdx}`."
+      "vote_success": "✅ Voted for **{choice}**.",
+      "vote_removed": "🗑️ Your vote has been removed.",
+      "vote_max": "You can select up to {max} choices.",
+      "vote_anonymous": "✅ Your anonymous vote has been recorded.",
+      "vote_role": "You don't have the required role for this poll.",
+      "vote_ended": "This poll has already ended.",
+      "vote_not_found": "Poll not found."
     },
     "warn": {
       "description": "Issue a warning to a user",
