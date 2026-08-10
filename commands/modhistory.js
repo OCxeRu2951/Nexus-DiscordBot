@@ -24,13 +24,11 @@ export default {
       sql: `SELECT * FROM mod_logs WHERE guild_id = ? AND target_id = ? ORDER BY created_at DESC LIMIT 20`,
       args: [interaction.guildId, target.id],
     });
-
     if (rows.length === 0) {
       return interaction.editReply(
         t(lang, "commands.modhistory.empty", { userId: target.id }),
       );
     }
-
     const embed = new EmbedBuilder()
       .setTitle(
         t(lang, "commands.modhistory.title", { username: target.username }),
@@ -39,18 +37,27 @@ export default {
       .setColor(0x5865f2)
       .setFooter({ text: t(lang, "commands.modhistory.footer") })
       .setTimestamp();
-
     const locale = lang === "ja" ? "ja-JP" : "en-US";
 
+    // reasonが長すぎる場合にEmbedField.value(1024文字)を超えないよう切り詰める
+    const truncate = (str, max = 300) =>
+      str.length > max ? str.slice(0, max - 3) + "..." : str;
+
     embed.addFields(
-      rows.map((row) => ({
+      rows.slice(0, 10).map((row) => ({
         name: `${t(lang, `commands.modhistory.action.${row.action}`) ?? row.action} — ${new Date(Number(row.created_at)).toLocaleString(locale, { timeZone: "Asia/Tokyo" })}`,
         value: t(lang, "commands.modhistory.field", {
-          reason: row.reason ?? t(lang, "commands.common.none"),
+          reason: truncate(row.reason ?? t(lang, "commands.common.none")),
           moderator: row.moderator_id,
         }),
       })),
     );
+
+    if (rows.length > 10) {
+      embed.setDescription(
+        t(lang, "commands.modhistory.history_more", { count: rows.length }),
+      );
+    }
 
     await interaction.editReply({ embeds: [embed] });
   },
