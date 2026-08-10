@@ -1,11 +1,17 @@
 import { db } from "../utils/db.js";
-import { getLang, t } from "../utils/i18n.js";
+import { resolveLang, t } from "../utils/i18n.js";
 import {
   EmbedBuilder,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
 } from "discord.js";
+import { normalizeForPrefix } from "../aspects/normalization.js";
+import { isPrefixAllowed } from "../components/prefix/permission.js";
+import { rollDiceExpression } from "../components/dice/index.js";
+import { performTrpgCheck } from "../components/trpg/index.js";
+import { parsePrefixTrpgShorthand } from "../components/trpg/prefixSyntax.js";
+import { getTrpgFormatter, getTrpgColor } from "../components/trpg/formatter.js";
 
 function generateId() {
   const date    = new Date();
@@ -19,7 +25,12 @@ export default {
   async execute(message) {
     if (message.author.bot) return;
 
-    const lang = await getLang(message.guildId);
+    // Messageオブジェクトには interaction.locale に相当する情報がないため、
+    // 優先順位は ユーザー手動設定 → サーバー手動設定 → en となる
+    const lang = await resolveLang({
+      userId: message.author.id,
+      guildId: message.guildId,
+    });
 
     // ---- AFK検知 ----
     const { rows: selfRows } = await db.execute({
@@ -45,7 +56,68 @@ export default {
       }
     }
 
-    // ---- プレフィクスコマンド ----
+    // ---- Prefix Adapter: r! / d! ダイスコマンド ----
+    // 全角/半角の両対応のため NFKC 正規化してから判定する
+    const normalizedForPrefix = normalizeForPrefix(message.content);
+    if (normalizedForPrefix.startsWith("r!") || normalizedForPrefix.startsWith("d!")) {
+      // Threadの場合は親チャンネルのOverrideも考慮する
+      const parentChannelId =
+        typeof message.channel?.isThread === "function" && message.channel.isThread()
+          ? message.channel.parentId
+          : null;
+
+      const allowed = await isPrefixAllowed(message.guildId, message.channelId, parentChannelId);
+
+      // 禁止チャンネルでは何も返信しない（silent ignore）
+      if (!allowed) return;
+
+      const expression = normalizedForPrefix.slice(2).trim();
+
+      // ---- TRPG短縮構文（r!coc / r!dnd 等）を先に判定 ----
+      // 汎用ダイス式と衝突しない構文のみ該当するため、既存挙動には影響しない
+      const trpgShorthand = parsePrefixTrpgShorthand(expression);
+      if (trpgShorthand) {
+        const outcome = performTrpgCheck(
+          { system: trpgShorthand.system, params: trpgShorthand.params, lang },
+        );
+
+        if (!outcome.ok) {
+          await message.reply(outcome.message).catch(console.error);
+          return;
+        }
+
+        const { systemId, result } = outcome;
+        const fmt = getTrpgFormatter(systemId);
+        const embed = new EmbedBuilder()
+          .setTitle(fmt.title())
+          .setColor(getTrpgColor(systemId, result))
+          .setDescription(fmt.compact(result, lang))
+          .setTimestamp();
+
+        await message.reply({ embeds: [embed] }).catch(console.error);
+        return;
+      }
+
+      // ---- 汎用ダイス式（既存挙動）----
+      // Prefix版は初期実装として set は常に1固定
+      const result = rollDiceExpression({ expression, sets: 1, lang });
+
+      if (!result.ok) {
+        await message.reply(result.message).catch(console.error);
+        return;
+      }
+
+      const embed = new EmbedBuilder()
+        .setTitle(result.title)
+        .setColor(0x5865f2)
+        .setDescription(result.description)
+        .setTimestamp();
+
+      await message.reply({ embeds: [embed] }).catch(console.error);
+      return;
+    }
+
+    // ---- 申請コマンド ----
     const content = message.content.trim();
 
     // !apply

@@ -1,5 +1,5 @@
 import { db } from "../utils/db.js";
-import { getLang, t } from "../utils/i18n.js";
+import { getLang, resolveLang, t } from "../utils/i18n.js";
 import { EmbedBuilder } from "discord.js";
 import { handleTimerStopSelect } from "../commands/timer.js";
 import { handlePollVote } from "../commands/poll.js";
@@ -7,7 +7,8 @@ import { handlePollVote } from "../commands/poll.js";
 export default {
   name: "interactionCreate",
   async execute(interaction, client) {
-    const lang = await getLang(interaction.guildId);
+    // 優先順位: ユーザー手動設定 → サーバー手動設定 → Discord locale → en
+    const lang = await getLang(interaction);
 
     // ---- ボタン処理 ----
     if (interaction.isButton()) {
@@ -104,9 +105,10 @@ export default {
           .update({ components: disabledComponents })
           .catch(() => {});
 
-        // 申請者にDM（申請者のギルド言語で送信）
+        // 申請者にDM（申請者本人の手動設定 → 申請元サーバーの設定 → en の優先順位で決定）
+        // ※ 申請者本人のinteractionではないためlocaleは取得できない
         try {
-          const appLang = await getLang(app.guild_id);
+          const appLang = await resolveLang({ userId: app.user_id, guildId: app.guild_id });
           const user = await client.users.fetch(app.user_id);
           await user.send({
             embeds: [

@@ -7,15 +7,26 @@
       "list_empty": "現在AFK中のユーザーはいません。",
       "list_title": "AFK中のユーザー",
       "elapsed": "{elapsed}分前から",
-      "mention": "**{username}** は現在AFK中です（{elapsed}分前）\n理由: {reason}"
+      "mention": "**{username}** は現在AFK中です（{elapsed}分前）\n理由: {reason}",
+      "subcommands": {
+        "set": {
+          "description": "AFKを設定",
+          "options": {
+            "reason": "理由（省略可）"
+          }
+        },
+        "list": {
+          "description": "AFK中のユーザー一覧"
+        }
+      }
     },
     "timer": {
       "description": "タイマーを開始・停止します",
       "options": {
         "action": "操作を選択",
-        "minutes": "分数 (0〜180)（start のみ）",
-        "seconds": "秒数 (0〜59)（start のみ）",
-        "label": "タイマーのラベル（start のみ）"
+        "minutes": "分数（0〜180、startのみ）",
+        "seconds": "秒数（0〜59、startのみ）",
+        "label": "タイマーのラベル（startのみ）"
       },
       "no_active": "アクティブなタイマーが見つかりません。",
       "remaining": "残り約 {time}",
@@ -33,7 +44,11 @@
     "clear": {
       "description": "メッセージを一括削除します",
       "success": "{count} 件のメッセージを削除しました。",
-      "fail": "削除に失敗しました。14日以内のメッセージのみ削除可能です。"
+      "fail": "削除に失敗しました。14日以内のメッセージのみ削除可能です。",
+      "options": {
+        "count": "削除する件数（1〜100）",
+        "user": "特定ユーザーのメッセージのみ削除（省略可）"
+      }
     },
     "poll": {
       "description": "投票を作成します",
@@ -53,7 +68,16 @@
       "vote_anonymous": "✅ 匿名投票を記録しました。",
       "vote_role": "この投票に必要なロールがありません。",
       "vote_ended": "この投票はすでに終了しています。",
-      "vote_not_found": "投票が見つかりません。"
+      "vote_not_found": "投票が見つかりません。",
+      "options": {
+        "question": "投票の質問文",
+        "choices": "選択肢（カンマ区切り、2つ以上）",
+        "anonymous": "匿名投票にする",
+        "max_choices": "1人が選べる最大選択数",
+        "role": "投票できるロールを制限",
+        "duration": "投票期間（分）",
+        "hide_results": "投票終了まで結果を非表示にする"
+      }
     },
     "warn": {
       "description": "ユーザーに警告を発行します",
@@ -68,17 +92,30 @@
       "history_title": "⚠️ {username} の警告履歴",
       "history_footer": "累計: {total}pt / {count}件",
       "history_field": "理由: {reason}\nポイント: {points}pt\n実行者: <@{moderator}>",
-      "history_more": "※ 最新10件を表示しています（全{count}件）"
+      "history_more": "※ 最新10件を表示しています（全{count}件）",
+      "options": {
+        "user": "対象ユーザー",
+        "reason": "警告理由",
+        "points": "警告ポイント（デフォルト: 1）"
+      }
     },
     "warnings": {
-      "description": "警告履歴を表示します"
+      "description": "警告履歴を表示します",
+      "options": {
+        "user": "対象ユーザー"
+      }
     },
     "clearwarn": {
       "description": "警告を削除します",
       "no_id": "`warn_id` を指定してください。",
       "not_found": "指定された警告が見つかりません。",
       "deleted_id": "警告ID `{id}` を削除しました。",
-      "deleted_all": "<@{userId}> の警告を全て削除しました。（{count}件）"
+      "deleted_all": "<@{userId}> の警告を全て削除しました。（{count}件）",
+      "options": {
+        "action": "操作を選択",
+        "user": "対象ユーザー",
+        "warn_id": "削除する警告のID（action: id のみ）"
+      }
     },
     "kick": {
       "description": "ユーザーをキックします",
@@ -86,19 +123,32 @@
       "no_permission": "このユーザーをキックする権限がありません。",
       "self": "自分自身をキックすることはできません。",
       "success": "<@{userId}> をキックしました。",
-      "dm": "**{guild}** からキックされました。\n理由: {reason}"
+      "dm": "**{guild}** からキックされました。\n理由: {reason}",
+      "options": {
+        "user": "対象ユーザー",
+        "reason": "理由（省略可）"
+      }
     },
     "ban": {
       "description": "ユーザーをBANします",
       "self": "自分自身をBANすることはできません。",
       "no_permission": "このユーザーをBANする権限がありません。",
       "success": "<@{userId}> をBANしました。",
-      "dm": "**{guild}** からBANされました。\n理由: {reason}"
+      "dm": "**{guild}** からBANされました。\n理由: {reason}",
+      "options": {
+        "user": "対象ユーザー",
+        "reason": "理由（省略可）",
+        "delete_days": "メッセージ削除日数（0〜7）"
+      }
     },
     "unban": {
       "description": "BANを解除します",
       "not_banned": "指定されたユーザーはBANされていません。",
-      "success": "<@{userId}> のBANを解除しました。"
+      "success": "<@{userId}> のBANを解除しました。",
+      "options": {
+        "user_id": "BANを解除するユーザーID",
+        "reason": "理由（省略可）"
+      }
     },
     "timeout": {
       "description": "タイムアウトを設定します",
@@ -106,13 +156,22 @@
       "no_permission": "このユーザーをタイムアウトする権限がありません。",
       "self": "自分自身をタイムアウトすることはできません。",
       "success": "<@{userId}> を {duration} タイムアウトしました。",
-      "dm": "**{guild}** でタイムアウトされました。\n時間: {duration}\n理由: {reason}"
+      "dm": "**{guild}** でタイムアウトされました。\n時間: {duration}\n理由: {reason}",
+      "options": {
+        "user": "対象ユーザー",
+        "duration": "時間",
+        "reason": "理由（省略可）"
+      }
     },
     "untimeout": {
       "description": "タイムアウトを解除します",
       "not_found": "対象ユーザーがサーバーにいません。",
       "not_timeout": "このユーザーはタイムアウトされていません。",
-      "success": "<@{userId}> のタイムアウトを解除しました。"
+      "success": "<@{userId}> のタイムアウトを解除しました。",
+      "options": {
+        "user": "対象ユーザー",
+        "reason": "理由（省略可）"
+      }
     },
     "role": {
       "description": "ロールを付与・剥奪します",
@@ -121,19 +180,32 @@
       "already_has": "対象ユーザーはすでにこのロールを持っています。",
       "not_has": "対象ユーザーはこのロールを持っていません。",
       "add_success": "<@{userId}> に <@&{roleId}> を付与しました。",
-      "remove_success": "<@{userId}> から <@&{roleId}> を剥奪しました。"
+      "remove_success": "<@{userId}> から <@&{roleId}> を剥奪しました。",
+      "options": {
+        "action": "操作を選択",
+        "user": "対象ユーザー",
+        "role": "対象ロール"
+      }
     },
     "slowmode": {
       "description": "スローモードを設定します",
       "set": "<#{channelId}> の低速モードを {seconds}秒 に設定しました。",
-      "unset": "<#{channelId}> の低速モードを解除しました。"
+      "unset": "<#{channelId}> の低速モードを解除しました。",
+      "options": {
+        "seconds": "秒数（0で解除）",
+        "channel": "対象チャンネル（省略時は現在のチャンネル）"
+      }
     },
     "lock": {
       "description": "チャンネルをロック・解除します",
       "locked": "🔒 このチャンネルはロックされました。",
       "unlocked": "🔓 このチャンネルのロックを解除しました。",
       "lock_success": "<#{channelId}> をロックしました。",
-      "unlock_success": "<#{channelId}> のロックを解除しました。"
+      "unlock_success": "<#{channelId}> のロックを解除しました。",
+      "options": {
+        "action": "操作を選択",
+        "channel": "対象チャンネル（省略時は現在のチャンネル）"
+      }
     },
     "note": {
       "description": "ユーザーのノートを管理します",
@@ -142,7 +214,28 @@
       "deleted": "ノートID `{id}` を削除しました。",
       "not_found": "指定されたノートが見つかりません。",
       "title": "📝 {username} のノート",
-      "field": "{note}\n実行者: <@{moderator}>"
+      "field": "{note}\n実行者: <@{moderator}>",
+      "subcommands": {
+        "add": {
+          "description": "ノートを追加",
+          "options": {
+            "user": "対象ユーザー",
+            "note": "ノートの内容"
+          }
+        },
+        "list": {
+          "description": "ノート一覧を表示",
+          "options": {
+            "user": "対象ユーザー"
+          }
+        },
+        "delete": {
+          "description": "ノートを削除",
+          "options": {
+            "id": "ノートID"
+          }
+        }
+      }
     },
     "modhistory": {
       "description": "ユーザーのモデレーション履歴を表示します",
@@ -163,6 +256,9 @@
         "note": "📝 ノート",
         "role_add": "➕ ロール付与",
         "role_remove": "➖ ロール剥奪"
+      },
+      "options": {
+        "user": "対象ユーザー"
       }
     },
     "setmod": {
@@ -178,18 +274,42 @@
       "field_timeout_min": "自動タイムアウト時間",
       "unset": "未設定",
       "timeout_default": "60分（デフォルト）",
-      "min": "分"
+      "min": "分",
+      "options": {
+        "action": "操作を選択",
+        "channel": "ログチャンネル（action: log のみ）",
+        "timeout_at": "タイムアウトするポイント数（action: threshold のみ）",
+        "ban_at": "BANするポイント数（action: threshold のみ）",
+        "timeout_min": "自動タイムアウトの時間（分）（action: threshold のみ）"
+      }
     },
     "sethourly": {
       "description": "時報の設定を管理します",
       "set": "時報チャンネルを {channel} に設定しました。",
       "unset": "時報を解除しました。",
-      "no_channel": "`channel` を指定してください。"
+      "no_channel": "`channel` を指定してください。",
+      "options": {
+        "action": "操作を選択",
+        "channel": "時報チャンネル"
+      }
     },
     "lang": {
-      "description": "Botの言語を設定します",
+      "description": "サーバーのデフォルト言語を設定します",
       "set_ja": "言語を **日本語** に設定しました。",
-      "set_en": "Language set to **English**."
+      "set_en": "Language set to **English**.",
+      "set_auto": "サーバーの言語設定を自動に変更しました。",
+      "options": {
+        "language": "言語を選択"
+      }
+    },
+    "language": {
+      "description": "自分用のBotの言語を設定します",
+      "set_ja": "言語を **日本語** に設定しました。",
+      "set_en": "Language set to **English**.",
+      "set_auto": "言語設定を自動に変更しました。",
+      "options": {
+        "language": "言語を選択"
+      }
     },
     "dice": {
       "description": "ダイスを振ります",
@@ -200,14 +320,28 @@
         "modifier": "結果への加減算",
         "buff": "高い目への偏り（0〜100%）",
         "debuff": "低い目への偏り（0〜100%）",
-        "show_odds": "確率情報を表示するか（デフォルト: false）"
+        "show_odds": "確率情報を表示するか（デフォルト: false）",
+        "expression": "ダイス式（例: 2d6+1d4-3、最大3グループ）",
+        "system": "TRPGシステムを選択（指定するとTRPGモードになります）",
+        "target": "目標値・技能値（CoC7は必須／D&D5eは任意のDC）",
+        "bonus_dice": "CoC7 ボーナスダイスの個数（0〜5）",
+        "penalty_dice": "CoC7 ペナルティダイスの個数（0〜5）",
+        "mode": "D&D5e の判定モード"
       },
       "error_buff_debuff": "buff と debuff の合計は200%以下にしてください。",
       "set_unit": "セット",
       "set_label": "セット{n}",
       "total_avg": "合計: **{total}**　平均: **{avg}**",
       "odds_title": "📊 確率情報",
-      "odds_each": "各面の出現確率:"
+      "odds_each": "各面の出現確率:",
+      "expression_conflict": "`expression` と従来オプション（sides/count/modifier/buff/debuff）は同時に指定できません。",
+      "expr_group_line": "{sign}{count}d{sides}: [{rolls}] = {subtotal}",
+      "expr_modifier_line": "補正: {sign}{value}",
+      "expr_total": "合計: {total}",
+      "expr_set_label": "セット{n}",
+      "expr_set_summary": "合計: **{total}**　平均: **{avg}**",
+      "expr_odds_unavailable": "複数ダイスグループの確率計算は現在未対応です。",
+      "trpg_legacy_conflict": "`system`（TRPGモード）と従来のダイスオプション（sides/count/buff/debuff/set/show_odds）は同時に指定できません。"
     },
     "serverinfo": {
       "description": "サーバー情報を表示します",
@@ -224,10 +358,16 @@
       "joined": "サーバー参加日",
       "roles": "ロール数",
       "nickname": "ニックネーム",
-      "none": "なし"
+      "none": "なし",
+      "options": {
+        "user": "対象ユーザー（省略時は自分）"
+      }
     },
     "apply-config": {
-      "description": "申請システムの設定を行います"
+      "description": "申請システムの設定を行います",
+      "options": {
+        "mode": "設定モードを選択"
+      }
     },
     "apply": {
       "description": "申請を送信します",
@@ -279,7 +419,9 @@
       "not_found": "そのコマンドは見つかりませんでした。",
       "command_title": "/{name} コマンドの説明",
       "usage": "使用方法",
-      "options": "オプション",
+      "options": {
+        "command": "詳細を表示するコマンド名"
+      },
       "options_none": "なし",
       "list_title": "利用可能なコマンド一覧",
       "list_desc": "`/help command:<コマンド名>` で詳細を表示できます。",
@@ -288,10 +430,87 @@
       "category_apply": "申請システム",
       "category_prefix": "申請システム (Prefix: !)",
       "prefix_commands": "`!apply`, `!revoke`"
+    },
+    "dice-prefix": {
+      "description": "r! / d! プレフィックスコマンドの使用範囲を管理します",
+      "subcommands": {
+        "mode": {
+          "description": "サーバー全体のプレフィックスモードを設定",
+          "options": {
+            "mode": "プレフィックスモード"
+          }
+        },
+        "channel": {
+          "description": "特定チャンネルのプレフィックス許可を設定",
+          "options": {
+            "channel": "対象チャンネル",
+            "permission": "許可設定"
+          }
+        }
+      },
+      "mode_set_all": "プレフィックスモードを **全チャンネル許可** に設定しました。",
+      "mode_set_selected": "プレフィックスモードを **許可チャンネルのみ** に設定しました。",
+      "mode_set_disabled": "プレフィックスモードを **無効** に設定しました。",
+      "channel_set_allow": "<#{channelId}> でのプレフィックス使用を **許可** に設定しました。",
+      "channel_set_deny": "<#{channelId}> でのプレフィックス使用を **禁止** に設定しました。",
+      "channel_reset": "<#{channelId}> の個別設定を解除し、サーバー全体設定へ戻しました。"
     }
   },
   "automod": {
     "afk_expired": "AFKを設定してから **{hours}時間** が経過したため、自動的に解除しました。\n理由: {reason}",
     "reminder_cancelled": "Bot再起動により **{label}** のタイマーがキャンセルされました。再度設定してください。"
+  },
+  "errors": {
+    "dice": {
+      "invalid_expression": "ダイス式が正しくありません。例: `2d6+1d4-3`",
+      "expression_too_long": "ダイス式は{max}文字以内で入力してください。",
+      "too_many_groups": "ダイスグループは最大{max}個までです（現在{actual}個）。",
+      "invalid_dice_count": "ダイスの個数は{min}〜{max}個の範囲で指定してください。",
+      "invalid_dice_sides": "ダイスの面数は{min}〜{max}の範囲で指定してください。",
+      "modifier_limit_exceeded": "固定値は{min}〜{max}の範囲で指定してください。"
+    },
+    "trpg": {
+      "unknown_system": "不明なTRPGシステムです: `{system}`",
+      "invalid_target": "目標値は{min}〜{max}の範囲で指定してください。",
+      "invalid_modifier": "修正値は{min}〜{max}の範囲で指定してください。",
+      "invalid_mode": "判定モードが正しくありません。",
+      "invalid_bonus_penalty": "ボーナス/ペナルティダイスは0〜{max}個の範囲で指定してください。",
+      "rule_error": "TRPG判定の処理中にエラーが発生しました。"
+    }
+  },
+  "trpg": {
+    "coc7": {
+      "critical": "🌟 クリティカル",
+      "extreme_success": "決定的成功",
+      "hard_success": "スペシャル（ハード成功）",
+      "regular_success": "成功",
+      "failure": "失敗",
+      "fumble": "💀 ファンブル",
+      "bonus_dice_used": "ボーナスダイス ×{count}",
+      "penalty_dice_used": "ペナルティダイス ×{count}"
+    },
+    "dnd5e": {
+      "mode_normal": "通常判定",
+      "mode_advantage": "有利（アドバンテージ）",
+      "mode_disadvantage": "不利（ディスアドバンテージ）",
+      "natural20": "🌟 ナチュラル20！",
+      "natural1": "💀 ナチュラル1……"
+    },
+    "common": {
+      "roll": "ロール",
+      "target": "目標値",
+      "modifier": "修正値",
+      "total": "合計",
+      "success": "成功",
+      "failure": "失敗"
+    },
+    "coc6": {
+      "critical": "🌟 クリティカル",
+      "regular_success": "成功",
+      "failure": "失敗",
+      "fumble": "💀 ファンブル",
+      "bonus_dice_used": "ボーナスダイス ×{count}",
+      "penalty_dice_used": "ペナルティダイス ×{count}"
+    }
   }
 }
