@@ -4,7 +4,7 @@ import {
   StringSelectMenuBuilder,
 } from "discord.js";
 import { db } from "../utils/db.js";
-import { getLang, t } from "../utils/i18n.js";
+import { t } from "../utils/i18n.js";
 
 const activeTimers = new Map();
 const MAX_MS = 3 * 60 * 60 * 1000;
@@ -209,8 +209,8 @@ async function stopTimer(interaction, row, lang) {
 }
 
 // interactionCreate.js から呼ばれるセレクトメニューハンドラ
-export async function handleTimerStopSelect(interaction) {
-  const lang = await getLang(interaction.guildId);
+// lang は interactionCreate.js 側で getLang(interaction) 済みのものを受け取る
+export async function handleTimerStopSelect(interaction, lang) {
   const reminderId = Number(interaction.values[0]);
 
   const { rows } = await db.execute({

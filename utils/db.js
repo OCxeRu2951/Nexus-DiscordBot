@@ -116,12 +116,26 @@ export async function initDb() {
         guild_id TEXT PRIMARY KEY,
         lang     TEXT NOT NULL DEFAULT 'ja'
       )`,
+      `CREATE TABLE IF NOT EXISTS user_lang (
+        user_id TEXT PRIMARY KEY,
+        lang    TEXT NOT NULL
+      )`,
       `CREATE TABLE IF NOT EXISTS poll_votes (
         id        INTEGER PRIMARY KEY AUTOINCREMENT,
         poll_id   INTEGER NOT NULL,
         user_id   TEXT    NOT NULL,
         choice    INTEGER NOT NULL,
         voted_at  INTEGER NOT NULL
+      )`,
+      `CREATE TABLE IF NOT EXISTS guild_prefix_settings (
+        guild_id TEXT PRIMARY KEY,
+        mode     TEXT NOT NULL CHECK (mode IN ('all', 'selected', 'disabled'))
+      )`,
+      `CREATE TABLE IF NOT EXISTS prefix_channel_settings (
+        guild_id   TEXT NOT NULL,
+        channel_id TEXT NOT NULL,
+        permission TEXT NOT NULL CHECK (permission IN ('allow', 'deny')),
+        PRIMARY KEY (guild_id, channel_id)
       )`,
     ],
     "write",

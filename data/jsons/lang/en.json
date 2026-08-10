@@ -7,12 +7,23 @@
       "list_empty": "No users are currently AFK.",
       "list_title": "AFK Users",
       "elapsed": "{elapsed} minutes ago",
-      "mention": "**{username}** is currently AFK ({elapsed} minutes ago)\nReason: {reason}"
+      "mention": "**{username}** is currently AFK ({elapsed} minutes ago)\nReason: {reason}",
+      "subcommands": {
+        "set": {
+          "description": "Set AFK",
+          "options": {
+            "reason": "Reason (optional)"
+          }
+        },
+        "list": {
+          "description": "List AFK users"
+        }
+      }
     },
     "timer": {
       "description": "Start or stop a timer",
       "options": {
-        "action": "Action",
+        "action": "Select action",
         "minutes": "Minutes (0-180, start only)",
         "seconds": "Seconds (0-59, start only)",
         "label": "Timer label (start only)"
@@ -33,7 +44,11 @@
     "clear": {
       "description": "Bulk delete messages",
       "success": "Deleted {count} messages.",
-      "fail": "Failed to delete. Only messages within 14 days can be deleted."
+      "fail": "Failed to delete. Only messages within 14 days can be deleted.",
+      "options": {
+        "count": "Number of messages to delete (1-100)",
+        "user": "Delete messages from this user only (optional)"
+      }
     },
     "poll": {
       "description": "Create a poll",
@@ -53,7 +68,16 @@
       "vote_anonymous": "✅ Your anonymous vote has been recorded.",
       "vote_role": "You don't have the required role for this poll.",
       "vote_ended": "This poll has already ended.",
-      "vote_not_found": "Poll not found."
+      "vote_not_found": "Poll not found.",
+      "options": {
+        "question": "Poll question",
+        "choices": "Choices separated by commas (2 or more)",
+        "anonymous": "Make voting anonymous",
+        "max_choices": "Maximum choices per user",
+        "role": "Restrict voting to a role",
+        "duration": "Poll duration in minutes",
+        "hide_results": "Hide results until the poll ends"
+      }
     },
     "warn": {
       "description": "Issue a warning to a user",
@@ -68,17 +92,30 @@
       "history_title": "⚠️ Warning History: {username}",
       "history_footer": "Total: {total}pt / {count} warnings",
       "history_field": "Reason: {reason}\nPoints: {points}pt\nModerator: <@{moderator}>",
-      "history_more": "Showing latest 10 of {count} total warnings."
+      "history_more": "Showing latest 10 of {count} total warnings.",
+      "options": {
+        "user": "Target user",
+        "reason": "Warning reason",
+        "points": "Warning points (default: 1)"
+      }
     },
     "warnings": {
-      "description": "View warning history"
+      "description": "View warning history",
+      "options": {
+        "user": "Target user"
+      }
     },
     "clearwarn": {
       "description": "Delete a warning",
       "no_id": "Please specify `warn_id`.",
       "not_found": "The specified warning was not found.",
       "deleted_id": "Warning ID `{id}` has been deleted.",
-      "deleted_all": "All warnings for <@{userId}> have been deleted. ({count} total)"
+      "deleted_all": "All warnings for <@{userId}> have been deleted. ({count} total)",
+      "options": {
+        "action": "Select action",
+        "user": "Target user",
+        "warn_id": "Warning ID to delete (action: id only)"
+      }
     },
     "kick": {
       "description": "Kick a user",
@@ -86,19 +123,32 @@
       "no_permission": "You do not have permission to kick this user.",
       "self": "You cannot kick yourself.",
       "success": "<@{userId}> has been kicked.",
-      "dm": "You were kicked from **{guild}**.\nReason: {reason}"
+      "dm": "You were kicked from **{guild}**.\nReason: {reason}",
+      "options": {
+        "user": "Target user",
+        "reason": "Reason (optional)"
+      }
     },
     "ban": {
       "description": "Ban a user",
       "self": "You cannot ban yourself.",
       "no_permission": "You do not have permission to ban this user.",
       "success": "<@{userId}> has been banned.",
-      "dm": "You were banned from **{guild}**.\nReason: {reason}"
+      "dm": "You were banned from **{guild}**.\nReason: {reason}",
+      "options": {
+        "user": "Target user",
+        "reason": "Reason (optional)",
+        "delete_days": "Message delete days (0-7)"
+      }
     },
     "unban": {
       "description": "Unban a user",
       "not_banned": "The specified user is not banned.",
-      "success": "Unbanned <@{userId}>."
+      "success": "Unbanned <@{userId}>.",
+      "options": {
+        "user_id": "User ID to unban",
+        "reason": "Reason (optional)"
+      }
     },
     "timeout": {
       "description": "Set a timeout for a user",
@@ -106,13 +156,22 @@
       "no_permission": "You do not have permission to timeout this user.",
       "self": "You cannot timeout yourself.",
       "success": "<@{userId}> has been timed out for {duration}.",
-      "dm": "You were timed out in **{guild}**.\nDuration: {duration}\nReason: {reason}"
+      "dm": "You were timed out in **{guild}**.\nDuration: {duration}\nReason: {reason}",
+      "options": {
+        "user": "Target user",
+        "duration": "Duration",
+        "reason": "Reason (optional)"
+      }
     },
     "untimeout": {
       "description": "Remove a timeout from a user",
       "not_found": "Target user is not in this server.",
       "not_timeout": "This user is not timed out.",
-      "success": "Timeout removed for <@{userId}>."
+      "success": "Timeout removed for <@{userId}>.",
+      "options": {
+        "user": "Target user",
+        "reason": "Reason (optional)"
+      }
     },
     "role": {
       "description": "Grant or revoke a role",
@@ -121,19 +180,32 @@
       "already_has": "The target user already has this role.",
       "not_has": "The target user does not have this role.",
       "add_success": "Added <@&{roleId}> to <@{userId}>.",
-      "remove_success": "Removed <@&{roleId}> from <@{userId}>."
+      "remove_success": "Removed <@&{roleId}> from <@{userId}>.",
+      "options": {
+        "action": "Select action",
+        "user": "Target user",
+        "role": "Target role"
+      }
     },
     "slowmode": {
       "description": "Set slowmode for a channel",
       "set": "Slowmode for <#{channelId}> set to {seconds} seconds.",
-      "unset": "Slowmode for <#{channelId}> has been disabled."
+      "unset": "Slowmode for <#{channelId}> has been disabled.",
+      "options": {
+        "seconds": "Seconds (0 to disable)",
+        "channel": "Target channel (defaults to current channel)"
+      }
     },
     "lock": {
       "description": "Lock or unlock a channel",
       "locked": "🔒 This channel has been locked.",
       "unlocked": "🔓 This channel has been unlocked.",
       "lock_success": "<#{channelId}> has been locked.",
-      "unlock_success": "<#{channelId}> has been unlocked."
+      "unlock_success": "<#{channelId}> has been unlocked.",
+      "options": {
+        "action": "Select action",
+        "channel": "Target channel (defaults to current channel)"
+      }
     },
     "note": {
       "description": "Manage notes for a user",
@@ -142,7 +214,28 @@
       "deleted": "Note `{id}` has been deleted.",
       "not_found": "The specified note was not found.",
       "title": "📝 Notes: {username}",
-      "field": "{note}\nModerator: <@{moderator}>"
+      "field": "{note}\nModerator: <@{moderator}>",
+      "subcommands": {
+        "add": {
+          "description": "Add a note",
+          "options": {
+            "user": "Target user",
+            "note": "Note content"
+          }
+        },
+        "list": {
+          "description": "List notes",
+          "options": {
+            "user": "Target user"
+          }
+        },
+        "delete": {
+          "description": "Delete a note",
+          "options": {
+            "id": "Note ID"
+          }
+        }
+      }
     },
     "modhistory": {
       "description": "View moderation history for a user",
@@ -163,6 +256,9 @@
         "note": "📝 Note",
         "role_add": "➕ Role Added",
         "role_remove": "➖ Role Removed"
+      },
+      "options": {
+        "user": "Target user"
       }
     },
     "setmod": {
@@ -178,18 +274,42 @@
       "field_timeout_min": "Auto Timeout Duration",
       "unset": "Not set",
       "timeout_default": "60 min (default)",
-      "min": " min"
+      "min": " min",
+      "options": {
+        "action": "Select action",
+        "channel": "Log channel (action: log only)",
+        "timeout_at": "Points required to trigger timeout (action: threshold only)",
+        "ban_at": "Points required to trigger ban (action: threshold only)",
+        "timeout_min": "Auto-timeout duration in minutes (action: threshold only)"
+      }
     },
     "sethourly": {
       "description": "Manage hourly announcement settings",
       "set": "Hourly announcement channel set to {channel}.",
       "unset": "Hourly announcement has been disabled.",
-      "no_channel": "Please specify a `channel`."
+      "no_channel": "Please specify a `channel`.",
+      "options": {
+        "action": "Select action",
+        "channel": "Hourly announcement channel"
+      }
     },
     "lang": {
-      "description": "Set the Bot language",
+      "description": "Set the server's default Bot language",
       "set_ja": "言語を **日本語** に設定しました。",
-      "set_en": "Language set to **English**."
+      "set_en": "Language set to **English**.",
+      "set_auto": "Server language setting changed to Auto.",
+      "options": {
+        "language": "Select language"
+      }
+    },
+    "language": {
+      "description": "Set your personal Bot language",
+      "set_ja": "言語を **日本語** に設定しました。",
+      "set_en": "Language set to **English**.",
+      "set_auto": "Language setting changed to Auto.",
+      "options": {
+        "language": "Select language"
+      }
     },
     "dice": {
       "description": "Roll dice",
@@ -200,14 +320,28 @@
         "modifier": "Add/subtract from result",
         "buff": "Bias toward high values (0-100%)",
         "debuff": "Bias toward low values (0-100%)",
-        "show_odds": "Show probability info (default: false)"
+        "show_odds": "Show probability info (default: false)",
+        "expression": "Dice expression (e.g. 2d6+1d4-3, max 3 groups)",
+        "system": "TRPG system to use (selecting this enables TRPG mode)",
+        "target": "Target number / skill value (required for CoC7, optional DC for D&D5e)",
+        "bonus_dice": "CoC7 bonus dice count (0-5)",
+        "penalty_dice": "CoC7 penalty dice count (0-5)",
+        "mode": "D&D5e roll mode"
       },
       "error_buff_debuff": "The sum of buff and debuff must be 200% or less.",
       "set_unit": " sets",
       "set_label": "Set {n}",
       "total_avg": "Total: **{total}**  Average: **{avg}**",
       "odds_title": "📊 Probability Info",
-      "odds_each": "Probability per face:"
+      "odds_each": "Probability per face:",
+      "expression_conflict": "`expression` cannot be combined with legacy options (sides/count/modifier/buff/debuff).",
+      "expr_group_line": "{sign}{count}d{sides}: [{rolls}] = {subtotal}",
+      "expr_modifier_line": "Modifier: {sign}{value}",
+      "expr_total": "Total: {total}",
+      "expr_set_label": "Set {n}",
+      "expr_set_summary": "Total: **{total}**  Average: **{avg}**",
+      "expr_odds_unavailable": "Probability calculation for multiple dice groups is not yet supported.",
+      "trpg_legacy_conflict": "`system` (TRPG mode) cannot be combined with legacy dice options (sides/count/buff/debuff/set/show_odds)."
     },
     "serverinfo": {
       "description": "Display server information",
@@ -224,10 +358,16 @@
       "joined": "Joined Server",
       "roles": "Roles",
       "nickname": "Nickname",
-      "none": "None"
+      "none": "None",
+      "options": {
+        "user": "Target user (defaults to yourself)"
+      }
     },
     "apply-config": {
-      "description": "Configure the application system"
+      "description": "Configure the application system",
+      "options": {
+        "mode": "Select configuration mode"
+      }
     },
     "apply": {
       "description": "Submit an application",
@@ -279,7 +419,9 @@
       "not_found": "That command was not found.",
       "command_title": "/{name} Command Info",
       "usage": "Usage",
-      "options": "Options",
+      "options": {
+        "command": "Command name to show details for"
+      },
       "options_none": "None",
       "list_title": "Available Commands",
       "list_desc": "Use `/help command:<name>` to view details.",
@@ -288,10 +430,87 @@
       "category_apply": "Application System",
       "category_prefix": "Application System (Prefix: !)",
       "prefix_commands": "`!apply`, `!revoke`"
+    },
+    "dice-prefix": {
+      "description": "Manage r! / d! prefix command permissions",
+      "subcommands": {
+        "mode": {
+          "description": "Set the server-wide prefix mode",
+          "options": {
+            "mode": "Prefix mode"
+          }
+        },
+        "channel": {
+          "description": "Set prefix permission for a specific channel",
+          "options": {
+            "channel": "Target channel",
+            "permission": "Permission"
+          }
+        }
+      },
+      "mode_set_all": "Prefix mode set to **All channels**.",
+      "mode_set_selected": "Prefix mode set to **Selected channels only**.",
+      "mode_set_disabled": "Prefix mode set to **Disabled**.",
+      "channel_set_allow": "Prefix usage in <#{channelId}> set to **Allow**.",
+      "channel_set_deny": "Prefix usage in <#{channelId}> set to **Deny**.",
+      "channel_reset": "Cleared the channel override for <#{channelId}>; it now follows the server default."
     }
   },
   "automod": {
     "afk_expired": "Your AFK has been automatically cleared after **{hours} hours**.\nReason: {reason}",
     "reminder_cancelled": "Timer **{label}** was cancelled due to Bot restart. Please set it again."
+  },
+  "errors": {
+    "dice": {
+      "invalid_expression": "Invalid dice expression. Example: `2d6+1d4-3`",
+      "expression_too_long": "Dice expression must be {max} characters or fewer.",
+      "too_many_groups": "A maximum of {max} dice groups is allowed (found {actual}).",
+      "invalid_dice_count": "Dice count must be between {min} and {max}.",
+      "invalid_dice_sides": "Dice sides must be between {min} and {max}.",
+      "modifier_limit_exceeded": "Modifier value must be between {min} and {max}."
+    },
+    "trpg": {
+      "unknown_system": "Unknown TRPG system: `{system}`",
+      "invalid_target": "Target must be between {min} and {max}.",
+      "invalid_modifier": "Modifier must be between {min} and {max}.",
+      "invalid_mode": "Invalid roll mode.",
+      "invalid_bonus_penalty": "Bonus/penalty dice count must be between 0 and {max}.",
+      "rule_error": "An error occurred while processing the TRPG check."
+    }
+  },
+  "trpg": {
+    "coc7": {
+      "critical": "🌟 Critical",
+      "extreme_success": "Extreme Success",
+      "hard_success": "Hard Success",
+      "regular_success": "Regular Success",
+      "failure": "Failure",
+      "fumble": "💀 Fumble",
+      "bonus_dice_used": "Bonus dice ×{count}",
+      "penalty_dice_used": "Penalty dice ×{count}"
+    },
+    "dnd5e": {
+      "mode_normal": "Normal roll",
+      "mode_advantage": "Advantage",
+      "mode_disadvantage": "Disadvantage",
+      "natural20": "🌟 Natural 20!",
+      "natural1": "💀 Natural 1..."
+    },
+    "common": {
+      "roll": "Roll",
+      "target": "Target",
+      "modifier": "Modifier",
+      "total": "Total",
+      "success": "Success",
+      "failure": "Failure"
+    },
+    "coc6": {
+      "critical": "🌟 Critical",
+      "regular_success": "Success",
+      "failure": "Failure",
+      "fumble": "💀 Fumble",
+      "bonus_dice_used": "Bonus dice ×{count}",
+      "penalty_dice_used": "Penalty dice ×{count}"
+    }
   }
 }
