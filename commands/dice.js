@@ -284,9 +284,20 @@ function buildLegacyOddsLines(buff, debuff, oddsTable, lang) {
   const lines = [];
   lines.push(`buff: ${buff}% / debuff: ${debuff}%`);
   lines.push(t(lang, "commands.dice.odds_each"));
+
   const oddsStr = oddsTable
     .map((o) => `**${o.face}**: ${(o.probability * 100).toFixed(1)}%`)
     .join("　");
+
   lines.push(oddsStr);
-  return lines.join("\n");
+
+  let result = lines.join("\n");
+
+  // Discord EmbedField.value の上限(1024文字)を安全マージン込みで超えないようにする
+  const MAX_FIELD_LENGTH = 1000;
+  if (result.length > MAX_FIELD_LENGTH) {
+    result = result.slice(0, MAX_FIELD_LENGTH - 3) + "...";
+  }
+
+  return result;
 }
