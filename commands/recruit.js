@@ -5,7 +5,7 @@ import {
   PermissionFlagsBits,
 } from "discord.js";
 import { t } from "../utils/i18n.js";
-import { publishRecruit, displayNameOf } from "../components/recruit/index.js";
+import { publishRecruit, displayNameOf, visibilityChannelIdOf } from "../components/recruit/index.js";
 import { RECRUIT_LIMITS as L } from "../components/recruit/prefixSyntax.js";
 
 export default {
@@ -48,6 +48,12 @@ export default {
         .setName("mention")
         .setDescription("Role to notify when posting")
         .setRequired(false),
+    )
+    .addBooleanOption((opt) =>
+      opt
+        .setName("thread")
+        .setDescription("Create a thread or forum post for this recruitment (default: on)")
+        .setRequired(false),
     ),
 
   async execute(interaction, client, lang) {
@@ -56,6 +62,7 @@ export default {
     const duration    = interaction.options.getInteger("duration");
     const description = interaction.options.getString("description")?.trim() || null;
     const role        = interaction.options.getRole("mention");
+    const thread      = interaction.options.getBoolean("thread") ?? true;
 
     // ---- メンション権限チェック ----
     // Botの権限を借りて、本人がメンションできないロールや @everyone を鳴らせないようにする
@@ -87,8 +94,10 @@ export default {
 
     await publishRecruit(client, {
       send:      (payload) => interaction.editReply(payload),
+      edit:      (payload) => interaction.editReply(payload),
       guildId:   interaction.guildId,
       channelId: interaction.channelId,
+      viewChannelId: visibilityChannelIdOf(interaction.channel),
       authorId:  interaction.user.id,
       authorName: displayNameOf(interaction.member, interaction.user),
       title,
@@ -96,6 +105,7 @@ export default {
       capacity,
       endAt:     duration ? Date.now() + duration * 60 * 1000 : null,
       lang,
+      createThread: thread,
     });
 
     // 編集ではメンション通知が飛ばないため、ロール通知は別メッセージで送る

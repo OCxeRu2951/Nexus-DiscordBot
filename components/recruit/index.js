@@ -11,17 +11,23 @@
  *   - 募集Embedの言語は作成時の言語（recruits.lang）で固定する
  *     （他ユーザーのボタン操作で表示言語が切り替わらないようにするため）
  *   - 定員・締切の判定はSQL 1文で行い、同時押しでも定員を超えない
+ *   - 作成時にスレッド / フォーラム投稿を作成（thread.js）
+ *   - 作成・参加・取消・締切のたびに更新リストを更新（list.js）
  */
 import {
   EmbedBuilder,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  ChannelType,
   MessageFlags,
   PermissionFlagsBits,
 } from "discord.js";
 import { db } from "../../utils/db.js";
 import { t } from "../../utils/i18n.js";
+import { getRecruitSettings } from "./settings.js";
+import { scheduleRecruitListUpdate } from "./list.js";
+import { createRecruitThread, addMemberToRecruitThread } from "./thread.js";
 
 const COLOR_OPEN   = 0xf07830;
 const COLOR_CLOSED = 0x95a5a6;
@@ -65,14 +71,28 @@ export function displayNameOf(member, user) {
   return member?.displayName ?? member?.nick ?? user?.globalName ?? user?.username ?? null;
 }
 
+/**
+ * ダッシュボードで「誰がこの募集を見てよいか」を判定する基準のチャンネル。
+ *   通常チャンネル → そのチャンネル
+ *   公開スレッド   → 親チャンネル
+ *   非公開スレッド → null（ダッシュボードでは管理者のみ閲覧可）
+ */
+export function visibilityChannelIdOf(channel) {
+  if (!channel) return null;
+  if (typeof channel.isThread === "function" && channel.isThread()) {
+    return channel.type === ChannelType.PrivateThread ? null : (channel.parentId ?? null);
+  }
+  return channel.id ?? null;
+}
+
 export async function createRecruit({
-  guildId, channelId, authorId, authorName, title, description, capacity, endAt, lang,
+  guildId, channelId, viewChannelId, authorId, authorName, title, description, capacity, endAt, lang,
 }) {
   const result = await db.execute({
-    sql: `INSERT INTO recruits (guild_id, channel_id, author_id, author_name, title, description, capacity, end_at, lang, status, created_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?)`,
+    sql: `INSERT INTO recruits (guild_id, channel_id, view_channel_id, author_id, author_name, title, description, capacity, end_at, lang, status, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?)`,
     args: [
-      guildId, channelId, authorId, authorName ?? null, title,
+      guildId, channelId, viewChannelId ?? null, authorId, authorName ?? null, title,
       description ?? null, capacity ?? null, endAt ?? null, lang, Date.now(),
     ],
   });
@@ -93,15 +113,19 @@ export async function attachRecruitMessage(id, messageId) {
  * @param {object}   params
  * @param {(payload: object) => Promise<import("discord.js").Message>} params.send
  *   募集Embedを投稿し、投稿したMessageを返す関数（Slash: editReply / Prefix: reply）
- * @returns {Promise<{ id: number, message: import("discord.js").Message }>}
+ * @param {(payload: object) => Promise<unknown>} [params.edit]
+ *   投稿を編集する関数（省略時は message.edit）。スレッドのリンクを追記するのに使う
+ * @param {boolean} [params.createThread=true] スレッド / フォーラム投稿を作成するか
+ * @returns {Promise<{ id: number, message: import("discord.js").Message, threadId: string|null }>}
  */
 export async function publishRecruit(client, {
-  send, guildId, channelId, authorId, authorName, title, description, capacity, endAt, lang,
+  send, edit, guildId, channelId, viewChannelId, authorId, authorName,
+  title, description, capacity, endAt, lang, createThread = true,
 }) {
   const id = await createRecruit({
-    guildId, channelId, authorId, authorName, title, description, capacity, endAt, lang,
+    guildId, channelId, viewChannelId, authorId, authorName, title, description, capacity, endAt, lang,
   });
-  const recruit = await getRecruit(id);
+  let recruit = await getRecruit(id);
 
   let message;
   try {
@@ -113,12 +137,29 @@ export async function publishRecruit(client, {
   }
 
   await attachRecruitMessage(id, message.id);
+  recruit = { ...recruit, message_id: message.id };
 
-  if (endAt) {
-    scheduleRecruitClose(client, { ...recruit, message_id: message.id });
+  if (endAt) scheduleRecruitClose(client, recruit);
+
+  // ---- スレッド / フォーラム投稿 ----
+  let threadId = null;
+  if (createThread) {
+    const settings = await getRecruitSettings(guildId);
+    const created  = await createRecruitThread(client, recruit, message, settings);
+    if (created) {
+      threadId = created.id;
+      await db.execute({
+        sql:  `UPDATE recruits SET thread_id = ?, thread_kind = ? WHERE id = ?`,
+        args: [created.id, created.kind, id],
+      });
+      recruit = { ...recruit, thread_id: created.id, thread_kind: created.kind };
+      const payload = buildRecruitPayload(recruit, []);
+      await (edit ? edit(payload) : message.edit(payload)).catch(console.error);
+    }
   }
 
-  return { id, message };
+  scheduleRecruitListUpdate(client, guildId);
+  return { id, message, threadId };
 }
 
 // ---- 参加 / 取消 ----
@@ -253,6 +294,13 @@ export function buildRecruitPayload(recruit, memberIds) {
     },
   );
 
+  if (recruit.thread_id) {
+    embed.addFields({
+      name:  t(lang, recruit.thread_kind === "forum" ? "commands.recruit.field_forum" : "commands.recruit.field_thread"),
+      value: `[${t(lang, "commands.recruit.thread_link")}](https://discord.com/channels/${recruit.guild_id}/${recruit.thread_id})`,
+    });
+  }
+
   if (closed) {
     embed.addFields({
       name:  t(lang, "commands.recruit.field_status"),
@@ -325,6 +373,8 @@ export async function closeRecruit(client, id, reason, { editMessage = true } = 
 
   const recruit = await getRecruit(id);
   if (!recruit) return true;
+
+  scheduleRecruitListUpdate(client, recruit.guild_id);
 
   const memberIds = await getMemberIds(id);
   const lang      = recruit.lang ?? "en";
@@ -458,8 +508,14 @@ export async function handleRecruitButton(interaction, lang) {
       return notify(`commands.recruit.error_${res.reason}`);
     }
 
+    const recruit = await getRecruit(id);
+    await addMemberToRecruitThread(interaction.client, recruit, interaction.user.id);
+
     if (res.filled) {
+      // 締切処理の中で更新リストも更新される
       await closeRecruit(interaction.client, id, "full", { editMessage: false });
+    } else {
+      scheduleRecruitListUpdate(interaction.client, recruit?.guild_id);
     }
     return refresh();
   }
@@ -467,6 +523,8 @@ export async function handleRecruitButton(interaction, lang) {
   if (action === "leave") {
     const res = await leaveRecruit(id, interaction.user.id);
     if (!res.ok) return notify(`commands.recruit.error_${res.reason}`);
+    const recruit = await getRecruit(id);
+    scheduleRecruitListUpdate(interaction.client, recruit?.guild_id);
     return refresh();
   }
 

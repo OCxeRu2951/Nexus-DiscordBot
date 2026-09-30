@@ -3,7 +3,7 @@ import { t } from "../utils/i18n.js";
 
 const CATEGORIES = {
   category_general: [
-    "afk", "timer", "sethourly", "poll", "recruit", "clear",
+    "afk", "timer", "sethourly", "poll", "recruit", "recruit-config", "clear",
     "dice", "serverinfo", "userinfo",
   ],
   category_mod: [

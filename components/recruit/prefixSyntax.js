@@ -9,7 +9,8 @@
  *
  *   - @人数 : "@3" / "＠３" / "@3人"                       → capacity
  *   - 締切  : "30m" / "30min" / "30分" / "2h" / "2時間"    → duration（分）
- *   - どちらも1行目の「独立したトークン」の場合のみ認識する（位置は自由）。
+ *   - スレッドを作らない: "スレなし" / "スレッドなし" / "nothread" → thread: false
+ *   - いずれも1行目の「独立したトークン」の場合のみ認識する（位置は自由）。
  *     "30分だけ" のように語の一部になっているものはタイトル扱い。
  *   - 全角入力はトークン単位でNFKC正規化して判定する。タイトル自体は元の文字列のまま。
  *   - メンション（<@id> / <@&id> / <#id> / @everyone / @here）はタイトルから除外する
@@ -33,10 +34,11 @@ const CAPACITY_RE = /^@(\d+)人?$/;
 const MINUTES_RE  = /^(\d+)(?:m|min|分)$/;
 const HOURS_RE    = /^(\d+)(?:h|hr|時間)$/;
 const MENTION_RE  = /^(?:<(?:@[!&]?|#)\d+>|@everyone|@here)$/;
+const NO_THREAD_RE = /^(?:nothread|no-thread|スレなし|スレッドなし)$/;
 
 /**
  * @param {string} body "b!" を除いた後の本文（元の文字列、trim済み想定）
- * @returns {{ ok: true, title: string, description: string|null, capacity: number|null, duration: number|null }
+ * @returns {{ ok: true, title: string, description: string|null, capacity: number|null, duration: number|null, thread: boolean }
  *         | { ok: false, error: string, vars?: object }}
  */
 export function parseRecruitPrefix(body) {
@@ -48,6 +50,7 @@ export function parseRecruitPrefix(body) {
 
   let capacity = null;
   let duration = null;
+  let thread   = true;
   const titleTokens = [];
 
   for (const token of header.split(/\s+/).filter(Boolean)) {
@@ -57,6 +60,7 @@ export function parseRecruitPrefix(body) {
     if ((m = n.match(CAPACITY_RE))) { capacity = Number(m[1]); continue; }
     if ((m = n.match(MINUTES_RE)))  { duration = Number(m[1]); continue; }
     if ((m = n.match(HOURS_RE)))    { duration = Number(m[1]) * 60; continue; }
+    if (NO_THREAD_RE.test(n))        { thread = false; continue; }
     if (MENTION_RE.test(n)) continue;
 
     titleTokens.push(token);
@@ -80,5 +84,5 @@ export function parseRecruitPrefix(body) {
     return { ok: false, error: "error_duration_range", vars: { min: L.durationMin, max: L.durationMax } };
   }
 
-  return { ok: true, title, description, capacity, duration };
+  return { ok: true, title, description, capacity, duration, thread };
 }
