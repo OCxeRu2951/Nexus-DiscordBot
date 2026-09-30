@@ -12,7 +12,7 @@ import { rollDiceExpression } from "../components/dice/index.js";
 import { performTrpgCheck } from "../components/trpg/index.js";
 import { parsePrefixTrpgShorthand } from "../components/trpg/prefixSyntax.js";
 import { getTrpgFormatter, getTrpgColor } from "../components/trpg/formatter.js";
-import { publishRecruit, displayNameOf } from "../components/recruit/index.js";
+import { publishRecruit, displayNameOf, visibilityChannelIdOf } from "../components/recruit/index.js";
 import { parseRecruitPrefix } from "../components/recruit/prefixSyntax.js";
 
 // a! = 申請 / r! = 申請取り消し / d! = ダイス / b! = 募集
@@ -134,7 +134,7 @@ export default {
     }
 
     // ---- b! 募集 ----
-    // 構文: b!<タイトル> [@人数] [30分|2時間]（2行目以降は詳細）
+    // 構文: b!<タイトル> [@人数] [30分|2時間] [スレなし]（2行目以降は詳細）
     if (matched.prefix === "b!") {
       const parsed = parseRecruitPrefix(matched.body);
       if (!parsed.ok) {
@@ -150,6 +150,7 @@ export default {
           message.reply({ ...payload, allowedMentions: { repliedUser: false } }),
         guildId:     message.guildId,
         channelId:   message.channelId,
+        viewChannelId: visibilityChannelIdOf(message.channel),
         authorId:    message.author.id,
         authorName:  displayNameOf(message.member, message.author),
         title:       parsed.title,
@@ -157,6 +158,7 @@ export default {
         capacity:    parsed.capacity,
         endAt:       parsed.duration ? Date.now() + parsed.duration * 60 * 1000 : null,
         lang,
+        createThread: parsed.thread,
       }).catch(console.error);
       return;
     }

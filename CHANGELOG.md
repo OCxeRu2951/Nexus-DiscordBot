@@ -17,7 +17,11 @@ All notable changes to Nexus Bot are documented in this file.
   - Closed recruitments are deleted 30 days after closing
   - The host's and members' display names are stored so the dashboard can show them
 - Dashboard: Recruitment page listing open and closed posts with host, channel, deadline and members, plus an open-recruitments count on the overview
+- Dashboard: two access levels. Non-admin members can open the Recruitment page (limited to viewer roles if set), see recruitments in channels they can view, and close their own; admins can edit recruitment settings from the page
 - Server data auto-deletion: when Nexus is removed from a server, its data is kept for 30 days and then deleted. Re-adding Nexus within 30 days cancels the deletion, and servers left while the bot was offline are detected at startup
+- Recruitment threads: each recruitment gets a thread (or a forum post, chosen with `/recruit-config mode:thread`); the host and members who join are added automatically. Skip with `thread:false` / `nothread`
+- Recruitment list: `/recruit-config mode:list` keeps one message listing open recruitments (with post and thread links), updated on every change
+- `/recruit-config` — choose `mode` (`list` / `thread` / `viewer` / `show`) to set the list channel, thread / forum mode and dashboard viewer roles, or show the current settings
 - `b!` prefix for recruitment: `b!<title> [@count] [30m|2h]`, with details on the following lines (e.g. `b!Board games @3 60m`)
 
 ### Changed

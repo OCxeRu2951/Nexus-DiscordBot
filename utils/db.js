@@ -151,6 +151,9 @@ export async function initDb() {
         lang        TEXT    NOT NULL DEFAULT 'en',
         status      TEXT    NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'closed')),
         close_reason TEXT,
+        thread_id   TEXT,
+        thread_kind TEXT,
+        view_channel_id TEXT,
         created_at  INTEGER NOT NULL,
         closed_at   INTEGER
       )`,
@@ -166,6 +169,26 @@ export async function initDb() {
         guild_id     TEXT PRIMARY KEY,
         scheduled_at INTEGER NOT NULL
       )`,
+      `CREATE TABLE IF NOT EXISTS recruit_settings (
+        guild_id                TEXT PRIMARY KEY,
+        list_channel_id         TEXT,
+        list_message_id         TEXT,
+        list_message_channel_id TEXT,
+        thread_mode             TEXT NOT NULL DEFAULT 'thread' CHECK (thread_mode IN ('thread', 'forum')),
+        forum_channel_id        TEXT,
+        viewer_role_ids         TEXT
+      )`,
+      `CREATE TABLE IF NOT EXISTS recruit_actions (
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        guild_id     TEXT    NOT NULL,
+        recruit_id   INTEGER,
+        action       TEXT    NOT NULL CHECK (action IN ('close', 'refresh_list')),
+        requested_by TEXT,
+        created_at   INTEGER NOT NULL,
+        processed_at INTEGER,
+        result       TEXT
+      )`,
+      `CREATE INDEX IF NOT EXISTS idx_recruit_actions_pending ON recruit_actions (processed_at)`,
     ],
     "write",
   );
@@ -174,6 +197,9 @@ export async function initDb() {
   // CREATE TABLE IF NOT EXISTS は既存テーブルに列を足さないため、不足分だけ追加する
   await addColumnIfMissing("recruits", "author_name", "TEXT");
   await addColumnIfMissing("recruit_members", "username", "TEXT");
+  await addColumnIfMissing("recruits", "thread_id", "TEXT");
+  await addColumnIfMissing("recruits", "thread_kind", "TEXT");
+  await addColumnIfMissing("recruits", "view_channel_id", "TEXT");
 }
 
 async function addColumnIfMissing(table, column, type) {

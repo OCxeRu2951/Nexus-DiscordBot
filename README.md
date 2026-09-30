@@ -67,6 +67,7 @@ Nexus has two independent dice systems and a growing TRPG rule engine, all shari
 | `/clear` | Bulk delete messages (with user filter) |
 | `/poll` | Create a poll (anonymous, multi-choice, role-restricted) |
 | `/recruit` | Create a recruitment post with Join / Leave / Close buttons |
+| `/recruit-config mode:<list\|thread\|viewer\|show>` | Recruitment settings: list channel, thread / forum, dashboard viewer roles, current settings (requires `Manage Server`) |
 | `/afk set` | Set AFK status |
 | `/afk list` | List AFK users |
 | `/serverinfo` | Display server information |
@@ -75,19 +76,19 @@ Nexus has two independent dice systems and a growing TRPG rule engine, all shari
 
 ### Recruitment
 
-`/recruit title:<title> [capacity:<1-50>] [duration:<minutes>] [description:<details>] [mention:<role>]`
+`/recruit title:<title> [capacity:<1-50>] [duration:<minutes>] [description:<details>] [mention:<role>] [thread:<true|false>]`
 
 Prefix form:
 
 ```
-b!<title> [@count] [deadline]
+b!<title> [@count] [deadline] [nothread]
 <details on the following lines>
 
 b!Board games @3 60m
 b!Raid @4 2h
 ```
 
-- `@count` (`@3`, `＠３`, `@3人`) sets the capacity. The deadline accepts `30m` / `30min` / `30分` / `2h` / `2時間`. Both are recognized only as separate words, in any position on the first line.
+- `@count` (`@3`, `＠３`, `@3人`) sets the capacity. The deadline accepts `30m` / `30min` / `30分` / `2h` / `2時間`. `nothread` (`スレなし`) skips the thread. All are recognized only as separate words, in any position on the first line.
 - The recruitment post is sent as a reply to the `b!` message. Role mentions in a `b!` message ping as usual (they come from the user) and are removed from the title.
 
 - Posts an embed with **Join** / **Leave** / **Close** buttons; the member list and count update in place.
@@ -96,6 +97,14 @@ b!Raid @4 2h
 - Capacity is enforced in a single SQL statement, so simultaneous clicks cannot overfill it. Deadline timers are restored after a restart.
 - `mention` pings a role once when posting. Non-mentionable roles and `@everyone` require the `Mention Everyone` permission.
 - Closed recruitments are deleted 30 days after closing.
+
+**Threads / forum posts** — Each recruitment gets its own thread by default (`thread:false` / `nothread` to skip). `/recruit-config mode:thread type:<Thread|Forum> [forum:<channel>]` chooses between a thread created from the post and a post in a forum channel (falls back to a thread if the forum post fails). The host and every member who joins are added to the thread, and the thread stays open after closing.
+
+**Recruitment list** — `/recruit-config mode:list channel:<channel>` keeps one message in that channel listing every open recruitment (title linked to the post, count, deadline, host and thread / forum link). It is edited whenever a recruitment is created, joined, left or closed; bursts of changes are merged into one edit, and a deleted list message is recreated.
+
+**Dashboard** — Server admins see and manage everything and can change the settings above. Other members see the recruitments in channels they can view in Discord and can close their own (members with `Manage Messages` can close any). `/recruit-config mode:viewer action:<Add|Remove|Reset> role:<role>` limits member access to specific roles (everyone by default). Closing from the dashboard is queued and carried out by the bot within a few seconds, so the post update and member notifications are the same as with the button.
+
+Required bot permissions for threads: `Create Public Threads` and `Send Messages in Threads` (and `Send Messages` in the forum channel for forum mode).
 
 ### Hourly Announcements
 
@@ -142,6 +151,7 @@ DiscordBot-Nexus/
 │   ├── dice.js                 # /dice — legacy + TRPG mode
 │   ├── prefix.js                # /dice-prefix — d! channel permission config
 │   ├── recruit.js               # /recruit — recruitment post
+│   ├── recruit-config.js        # /recruit-config — list / thread / viewer settings
 │   ├── language.js / lang.js    # personal / server language settings
 │   └── ... (moderation, utility, apply-config, etc.)
 ├── components/
@@ -164,6 +174,10 @@ DiscordBot-Nexus/
 │   │   └── permission.js        # channel permission resolution (Guild mode + overrides + thread inheritance)
 │   └── recruit/
 │       ├── index.js             # recruitment DB ops, embed/buttons, close timers, button handler
+│       ├── list.js              # recruitment list message (debounced, single message)
+│       ├── thread.js            # thread / forum post creation, adding members
+│       ├── actions.js           # executes dashboard requests (close / refresh list)
+│       ├── settings.js          # recruit_settings read/write
 │       └── prefixSyntax.js      # b! syntax parser + shared limits
 ├── aspects/
 │   ├── normalization.js         # NFKC normalization + width/case-insensitive prefix matching
@@ -209,6 +223,8 @@ guild_lang / user_lang   Language settings (server / personal)
 guild_prefix_settings    Prefix mode per guild (all/selected/disabled)
 prefix_channel_settings  Per-channel prefix override (allow/deny)
 recruits / recruit_members  Recruitment posts and members
+recruit_settings         Recruitment list channel, thread mode, dashboard viewer roles
+recruit_actions          Requests from the dashboard, processed by the bot
 guild_deletion_queue     Scheduled deletion of server data
 ```
 

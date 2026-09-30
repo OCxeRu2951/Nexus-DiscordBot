@@ -31,6 +31,8 @@ const GUILD_SCOPED_TABLES = [
   "prefix_channel_settings",
   "recruits",
   "recruit_members",
+  "recruit_settings",
+  "recruit_actions",
 ];
 
 export async function scheduleGuildDeletion(guildId) {
