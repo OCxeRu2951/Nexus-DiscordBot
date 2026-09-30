@@ -1,32 +1,14 @@
-import { db } from "../utils/db.js";
+import { scheduleGuildDeletion } from "../utils/guildCleanup.js";
 
 export default {
   name: "guildDelete",
   async execute(guild) {
     console.log(`Left guild: ${guild.name} (${guild.id})`);
 
-    const tables = [
-      "settings",
-      "mod_settings",
-      "apply_settings",
-      "warnings",
-      "mod_notes",
-      "mod_logs",
-      "polls",
-      "applications",
-      "reminders",
-      "afk",
-    ];
+    // 即時削除はせず、30日後に完全削除する予約だけを入れる。
+    // 猶予期間中に再参加した場合は guildCreate.js が予約をキャンセルする。
+    await scheduleGuildDeletion(guild.id);
 
-    for (const table of tables) {
-      await db
-        .execute({
-          sql: `DELETE FROM ${table} WHERE guild_id = ?`,
-          args: [guild.id],
-        })
-        .catch(console.error);
-    }
-
-    console.log(`Cleaned up data for guild: ${guild.id}`);
+    console.log(`Scheduled data deletion for guild: ${guild.id} (in 30 days)`);
   },
 };

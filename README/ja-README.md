@@ -13,7 +13,7 @@
 
 ## 概要
 
-Nexusはモデレーション・時報・投票・ダイス/TRPGエンジン・申請システムを備えたDiscordユーティリティBotです。スラッシュコマンドを主インターフェースとしつつ、高速なダイスロール用に`r!`/`d!`プレフィックスコマンドにも対応しています。データ永続化はTurso（libSQL）、設定管理はCloudflare Pagesダッシュボードから行えます。
+Nexusはモデレーション・時報・投票・募集・ダイス/TRPGエンジン・申請システムを備えたDiscordユーティリティBotです。スラッシュコマンドを主インターフェースとしつつ、短いプレフィックスコマンド（申請用の`a!`/`r!`、高速ダイスロール用の`d!`、募集用の`b!`）にも対応しています。データ永続化はTurso（libSQL）、設定管理はCloudflare Pagesダッシュボードから行えます。
 
 ## 機能一覧
 
@@ -46,16 +46,17 @@ Nexusには2系統の独立したダイス機能と、成長中のTRPGルール�
 | `/dice system:coc7 ...` | クトゥルフ神話TRPG 第7版の技能判定（1d100） |
 | `/dice system:coc6 ...` | クトゥルフ神話TRPG 第6版の技能判定（1d100） |
 | `/dice system:dnd5e ...` | D&D 5eのd20判定（通常/有利/不利） |
-| `r!<式>` / `d!<式>` | Prefixダイス式。例: `r!2d6+1d4-3`（最大3グループ、加減算のみ） |
-| `r!coc7 <目標値>` / `d!coc7 <目標値>` | CoC7版判定の短縮構文 |
-| `r!coc6 <目標値>` / `d!coc6 <目標値>` | CoC6版判定の短縮構文 |
-| `r!dnd <修正値> [adv\|dis]` | D&D5e判定の短縮構文 |
+| `d!<式>` | Prefixダイス式。例: `d!2d6+1d4-3`（最大3グループ、加減算のみ） |
+| `d!coc7 <目標値>` | CoC7版判定の短縮構文 |
+| `d!coc6 <目標値>` | CoC6版判定の短縮構文 |
+| `d!dnd <修正値> [adv\|dis]` | D&D5e判定の短縮構文 |
 
 **設計上のポイント：**
 - `buff`/`debuff`（重み付き乱数）とTRPGダイスは完全に分離されています。TRPG判定は常に公平な乱数（Fair Roller）を使用します。
 - 複数Dice Groupのダイス式（`2d6+1d4-3d8`）は**Prefix専用**です。Slashの`/dice`には`expression`オプションはありません。
-- 全角入力（`ｒ！２ｄ６`）はNFKC正規化により解析前に半角化されるため、スマートフォンのIME入力でも同様に動作します。
-- `/dice-prefix mode` / `/dice-prefix channel` により、サーバー管理者が`r!`/`d!`を使用できるチャンネルを制限できます（モード: `all`/`selected`/`disabled`、チャンネル単位の`allow`/`deny`/`reset`、Threadは親チャンネル設定を継承）。
+- ダイスのプレフィックスは`d!`のみです。`r!`は申請の取り消し専用です。
+- すべてのプレフィックス（`a!`/`r!`/`d!`/`b!`）はNFKC正規化により全角・半角、大文字・小文字を区別せず判定されるため（`ｄ！２ｄ６`、`Ｄ!2d6`など）、スマートフォンのIME入力でも同様に動作します。
+- `/dice-prefix mode` / `/dice-prefix channel` により、サーバー管理者が`d!`を使用できるチャンネルを制限できます（モード: `all`/`selected`/`disabled`、チャンネル単位の`allow`/`deny`/`reset`、Threadは親チャンネル設定を継承）。
 
 ### ユーティリティ
 
@@ -65,11 +66,36 @@ Nexusには2系統の独立したダイス機能と、成長中のTRPGルール�
 | `/timer stop` | タイマー停止 |
 | `/clear` | メッセージ一括削除（ユーザーフィルター対応） |
 | `/poll` | 投票作成（匿名・複数選択・ロール制限対応） |
+| `/recruit` | 参加・取消・締切ボタン付きの募集を作成 |
 | `/afk set` | AFK設定 |
 | `/afk list` | AFK一覧表示 |
 | `/serverinfo` | サーバー情報表示 |
 | `/userinfo` | ユーザー情報表示 |
 | `/help` | コマンド一覧・詳細表示 |
+
+### 募集
+
+`/recruit title:<タイトル> [capacity:<1〜50>] [duration:<分>] [description:<詳細>] [mention:<ロール>]`
+
+プレフィックス版:
+
+```
+b!<タイトル> [@人数] [締切]
+<2行目以降は詳細>
+
+b!ボドゲ会 @3 60分
+b!APEX ランク @2 2時間
+```
+
+- `@人数`（`@3`、`＠３`、`@3人`）で定員、`30分`/`2時間`/`30m`/`2h`で締切を指定します。どちらも1行目の独立した語として書いた場合のみ認識し、位置は自由です。
+- 募集投稿は`b!`のメッセージへの返信として送られます。`b!`のメッセージに書いたロールメンションは通常どおり（本人の発言として）通知され、タイトルからは除外されます。
+
+- **参加**/**取消**/**締切**ボタン付きのEmbedを投稿し、参加者一覧と人数をその場で更新します。
+- 定員到達・締切時刻で自動的に締め切ります。募集者、または`メッセージの管理`権限を持つメンバーは手動で締め切れます。
+- 締切時は募集投稿への返信として、募集者と参加者全員をメンションします。
+- 定員判定はSQL 1文で行うため、同時に押されても定員を超えません。締切タイマーはBot再起動後も復元されます。
+- `mention`は投稿時に1回だけロールを通知します。メンション不可のロールと`@everyone`には`@everyone、@here、全てのロールにメンション`権限が必要です。
+- 締め切った募集は30日後に削除されます。
 
 ### 時報
 
@@ -84,8 +110,8 @@ Nexusには2系統の独立したダイス機能と、成長中のTRPGルール�
 
 | コマンド | 説明 |
 | --- | --- |
-| `!apply <内容> [コメント]` | 申請を送信（Prefixコマンド、設定済みチャンネルのみ） |
-| `!revoke <ID>` | 申請を取り消し |
+| `a!<内容>` | 申請を送信（設定済みチャンネルのみ。`a!`以降がすべて申請内容） |
+| `r!<ID>` | 申請を取り消し |
 | `/apply-config` | 申請システムの設定（チャンネル・通知ロール/方法・管理者チャンネル・一覧表示・CSV出力） |
 
 ### 言語設定
@@ -114,7 +140,8 @@ Nexusには2系統の独立したダイス機能と、成長中のTRPGルール�
 DiscordBot-Nexus/
 ├── commands/                  # スラッシュコマンド定義（Adapter層）
 │   ├── dice.js                 # /dice — レガシー + TRPGモード
-│   ├── prefix.js                # /dice-prefix — r!/d!のチャンネル権限設定
+│   ├── prefix.js                # /dice-prefix — d!のチャンネル権限設定
+│   ├── recruit.js               # /recruit — 募集投稿
 │   ├── language.js / lang.js    # 個人/サーバーの言語設定
 │   └── ...（モデレーション・ユーティリティ・apply-config等）
 ├── components/
@@ -131,23 +158,27 @@ DiscordBot-Nexus/
 │   │   ├── coc7.js / coc6.js    # 純粋関数のRule。Dice Engineのrollを再利用
 │   │   ├── dnd5e.js             # 同上
 │   │   ├── formatter.js         # 詳細(Slash)/簡潔(Prefix) + システム横断ディスパッチ
-│   │   ├── prefixSyntax.js      # r!coc7 / r!dnd 短縮構文パーサー
+│   │   ├── prefixSyntax.js      # d!coc7 / d!dnd 短縮構文パーサー
 │   │   └── index.js             # 共通エントリポイント（performTrpgCheck）
-│   └── prefix/
-│       └── permission.js        # チャンネル権限判定（Guild mode + Override + Thread継承）
+│   ├── prefix/
+│   │   └── permission.js        # チャンネル権限判定（Guild mode + Override + Thread継承）
+│   └── recruit/
+│       ├── index.js             # 募集のDB操作・Embed/ボタン生成・締切タイマー・ボタン処理
+│       └── prefixSyntax.js      # b! 構文パーサー + 共通の上限値
 ├── aspects/
-│   ├── normalization.js         # NFKC正規化（全角→半角）
+│   ├── normalization.js         # NFKC正規化 + 全角半角・大小文字を問わないPrefix判定
 │   └── language.js              # utils/i18n.js の resolveLang の薄いラッパー
 ├── events/
 │   ├── ready.js
 │   ├── interactionCreate.js     # getLang(interaction)で言語解決し各コマンドへディスパッチ
-│   ├── messageCreate.js         # !apply/!revoke + r!/d! Prefix Adapter
+│   ├── messageCreate.js         # a!/r! 申請 + d! ダイス + b! 募集
 │   ├── guildCreate.js
 │   └── guildDelete.js
 ├── utils/
 │   ├── db.js
 │   ├── modLog.js
 │   ├── applyExport.js
+│   ├── guildCleanup.js          # 退出したサーバーの30日後削除キュー
 │   └── i18n.js                  # t() / resolveLang() / getUserLang() / getGuildLang()
 ├── data/
 │   └── jsons/lang/
@@ -177,7 +208,11 @@ hourly_messages          時報メッセージ
 guild_lang / user_lang    言語設定（サーバー/個人）
 guild_prefix_settings     サーバーごとのPrefixモード（all/selected/disabled）
 prefix_channel_settings   チャンネルごとのPrefix個別設定（allow/deny）
+recruits / recruit_members  募集と参加者
+guild_deletion_queue      サーバーデータの削除予約
 ```
+
+Nexusがサーバーから削除されると、そのサーバーのデータは30日間保持された後、サーバー単位のすべてのテーブルから削除されます。30日以内に再導入した場合は削除予約が取り消されます。Botの停止中に削除されたサーバーも、起動時に検出して削除予約に登録します。
 
 ## セットアップ
 
@@ -186,7 +221,7 @@ prefix_channel_settings   チャンネルごとのPrefix個別設定（allow/den
 - Node.js 20以上
 - Tursoアカウント・データベース
 - Discord Developer PortalでBotを作成済み
-- Developer Portalで**Message Content Intent**を有効化済み（`!apply`/`!revoke`と`r!`/`d!`Prefixコマンドに必須）
+- Developer Portalで**Message Content Intent**を有効化済み（`a!`/`r!`/`d!`/`b!`プレフィックスコマンドに必須）
 
 ### インストール
 
@@ -225,16 +260,16 @@ pm2 start index.js --name nexus
 ## Prefixダイス早見表
 
 ```
-r!2d6                  2d6を振る
+d!2d6                  2d6を振る
 d!2d6+1d4-3            最大3グループ、加減算のみ
-r!coc7 60              CoC7版判定、技能値60
-r!coc6 60              CoC6版判定、技能値60
-r!dnd +5               D&D5e判定、修正値+5
-r!dnd +5 adv           ...アドバンテージ付き
-r!dnd +5 dis           ...ディスアドバンテージ付き
+d!coc7 60              CoC7版判定、技能値60
+d!coc6 60              CoC6版判定、技能値60
+d!dnd +5               D&D5e判定、修正値+5
+d!dnd +5 adv           ...アドバンテージ付き
+d!dnd +5 dis           ...ディスアドバンテージ付き
 ```
 
-全角入力（`ｒ！２ｄ６`）も同様に動作します。チャンネルごとの使用可否は`/dice-prefix`で管理します。
+全角入力（`ｄ！２ｄ６`）も同様に動作します。`r!`はダイスには使えなくなりました。チャンネルごとの使用可否は`/dice-prefix`で管理します。
 
 ## バージョンロードマップ
 
@@ -243,14 +278,10 @@ r!dnd +5 dis           ...ディスアドバンテージ付き
 | v0.7.0 | 申請システム | 完了 |
 | v0.8.0 | モデレーションスイート | 完了 |
 | v0.9.0 | ダイス/TRPGエンジン（coc7・coc6・dnd5e）+ Prefix権限システム | 完了 |
-| v0.10.0 | 他TRPGシステム追加（sw25・dx3）、Session/Recruitment連携 | 予定 |
+| v0.10.0 | 募集（`/recruit`・`b!`）+ プレフィックス再設計（`a!`/`r!`/`d!`） | 完了 |
+| v0.11.0 | 他TRPGシステム追加（sw25・dx3）、Session連携 | 予定 |
 | v1.0.0 | 正式リリース | 予定 |
 | v2.0.0 | 有料プラン・Rust(serenity)移行開始 | 予定 |
-
-## 関連サイト
-
-- [Nexus管理ダッシュボード]()
-- [Nexus公開情報ページ](https://nexus.ocxeru.com/install)
 
 ## 関連リポジトリ
 

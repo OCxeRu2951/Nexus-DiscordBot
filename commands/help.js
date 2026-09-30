@@ -3,7 +3,7 @@ import { t } from "../utils/i18n.js";
 
 const CATEGORIES = {
   category_general: [
-    "afk", "timer", "sethourly", "poll", "clear",
+    "afk", "timer", "sethourly", "poll", "recruit", "clear",
     "dice", "serverinfo", "userinfo",
   ],
   category_mod: [
@@ -53,7 +53,7 @@ export default {
           `**${command.data.description}**\n\n` +
           `**${t(lang, "commands.help.usage")}**\n` +
           `\`/${command.data.name}${usageArgs ? " " + usageArgs : ""}\`\n\n` +
-          `**${t(lang, "commands.help.options")}**\n` +
+          `**${t(lang, "commands.help.options_label")}**\n` +
           optionList,
         )
         .setColor(0x5865f2)

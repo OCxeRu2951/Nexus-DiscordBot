@@ -9,7 +9,7 @@ import {
 export default {
   data: new SlashCommandBuilder()
     .setName("dice-prefix")
-    .setDescription("Manage r! / d! prefix command permissions")
+    .setDescription("Manage d! prefix command permissions")
     .addSubcommand((sub) =>
       sub
         .setName("mode")

@@ -13,7 +13,7 @@
 
 ## Overview
 
-Nexus is a Discord utility bot featuring moderation, hourly announcements, polls, a dice/TRPG engine, and an application system. It uses slash commands as its primary interface plus a `r!`/`d!` prefix for fast dice rolling, with data persistence via Turso (libSQL) and a Cloudflare Pages dashboard for configuration management.
+Nexus is a Discord utility bot featuring moderation, hourly announcements, polls, recruitment posts, a dice/TRPG engine, and an application system. It uses slash commands as its primary interface plus short prefix commands (`a!` / `r!` for applications, `d!` for fast dice rolling, `b!` for recruitment), with data persistence via Turso (libSQL) and a Cloudflare Pages dashboard for configuration management.
 
 ## Features
 
@@ -46,16 +46,17 @@ Nexus has two independent dice systems and a growing TRPG rule engine, all shari
 | `/dice system:coc7 ...` | Call of Cthulhu 7th Edition skill check (1d100) |
 | `/dice system:coc6 ...` | Call of Cthulhu 6th Edition skill check (1d100) |
 | `/dice system:dnd5e ...` | D&D 5e d20 check (normal / advantage / disadvantage) |
-| `r!<expr>` / `d!<expr>` | Prefix dice expression, e.g. `r!2d6+1d4-3` (max 3 dice groups, addition/subtraction only) |
-| `r!coc7 <target>` / `d!coc7 <target>` | Prefix shorthand for a CoC 7th check |
-| `r!coc6 <target>` / `d!coc6 <target>` | Prefix shorthand for a CoC 6th check |
-| `r!dnd <modifier> [adv\|dis]` | Prefix shorthand for a D&D 5e check |
+| `d!<expr>` | Prefix dice expression, e.g. `d!2d6+1d4-3` (max 3 dice groups, addition/subtraction only) |
+| `d!coc7 <target>` | Prefix shorthand for a CoC 7th check |
+| `d!coc6 <target>` | Prefix shorthand for a CoC 6th check |
+| `d!dnd <modifier> [adv\|dis]` | Prefix shorthand for a D&D 5e check |
 
 **Design notes:**
 - `buff` / `debuff` (weighted RNG) is completely separate from TRPG dice — TRPG checks always use a fair, unweighted roll.
 - Multi-group dice expressions (`2d6+1d4-3d8`) are **prefix-only**; the Slash `/dice` command does not expose an `expression` option.
-- Full-width input (`ｒ！２ｄ６`) is normalized via NFKC before parsing, so prefix commands work the same from mobile IME input.
-- `/dice-prefix mode` / `/dice-prefix channel` lets server admins restrict which channels allow `r!`/`d!` (modes: `all` / `selected` / `disabled`, with per-channel `allow`/`deny`/`reset` overrides, including thread inheritance from the parent channel).
+- `d!` is the only dice prefix. `r!` is reserved for cancelling applications.
+- All prefixes (`a!` / `r!` / `d!` / `b!`) are matched regardless of full-width/half-width and upper/lower case via NFKC normalization (`ｄ！２ｄ６`, `Ｄ!2d6`), so they work the same from mobile IME input.
+- `/dice-prefix mode` / `/dice-prefix channel` lets server admins restrict which channels allow `d!` (modes: `all` / `selected` / `disabled`, with per-channel `allow`/`deny`/`reset` overrides, including thread inheritance from the parent channel).
 
 ### Utility
 
@@ -65,11 +66,36 @@ Nexus has two independent dice systems and a growing TRPG rule engine, all shari
 | `/timer stop` | Stop a timer |
 | `/clear` | Bulk delete messages (with user filter) |
 | `/poll` | Create a poll (anonymous, multi-choice, role-restricted) |
+| `/recruit` | Create a recruitment post with Join / Leave / Close buttons |
 | `/afk set` | Set AFK status |
 | `/afk list` | List AFK users |
 | `/serverinfo` | Display server information |
 | `/userinfo` | Display user information |
 | `/help` | Show command list / details |
+
+### Recruitment
+
+`/recruit title:<title> [capacity:<1-50>] [duration:<minutes>] [description:<details>] [mention:<role>]`
+
+Prefix form:
+
+```
+b!<title> [@count] [deadline]
+<details on the following lines>
+
+b!Board games @3 60m
+b!Raid @4 2h
+```
+
+- `@count` (`@3`, `＠３`, `@3人`) sets the capacity. The deadline accepts `30m` / `30min` / `30分` / `2h` / `2時間`. Both are recognized only as separate words, in any position on the first line.
+- The recruitment post is sent as a reply to the `b!` message. Role mentions in a `b!` message ping as usual (they come from the user) and are removed from the title.
+
+- Posts an embed with **Join** / **Leave** / **Close** buttons; the member list and count update in place.
+- Closes automatically when the capacity is reached or the deadline passes. The host, or anyone with `Manage Messages`, can close it manually.
+- On close, Nexus replies to the post mentioning the host and all members.
+- Capacity is enforced in a single SQL statement, so simultaneous clicks cannot overfill it. Deadline timers are restored after a restart.
+- `mention` pings a role once when posting. Non-mentionable roles and `@everyone` require the `Mention Everyone` permission.
+- Closed recruitments are deleted 30 days after closing.
 
 ### Hourly Announcements
 
@@ -84,8 +110,8 @@ Per-hour and per-day-of-week messages (text / embed / image / file) are configur
 
 | Command | Description |
 | --- | --- |
-| `!apply <content> [comment]` | Submit an application (prefix command, in the configured channel only) |
-| `!revoke <ID>` | Cancel an application |
+| `a!<content>` | Submit an application (configured channel only; everything after `a!` is the content) |
+| `r!<ID>` | Cancel an application |
 | `/apply-config` | Configure the application system (channel, notification role/method, admin channel, view, CSV export) |
 
 ### Language
@@ -114,7 +140,8 @@ Resolution priority: **User manual setting → Server manual setting → Discord
 DiscordBot-Nexus/
 ├── commands/                  # Slash command definitions (Adapters)
 │   ├── dice.js                 # /dice — legacy + TRPG mode
-│   ├── prefix.js                # /dice-prefix — r!/d! channel permission config
+│   ├── prefix.js                # /dice-prefix — d! channel permission config
+│   ├── recruit.js               # /recruit — recruitment post
 │   ├── language.js / lang.js    # personal / server language settings
 │   └── ... (moderation, utility, apply-config, etc.)
 ├── components/
@@ -131,23 +158,27 @@ DiscordBot-Nexus/
 │   │   ├── coc7.js / coc6.js    # pure rule functions, reuse Dice Engine's rollDie
 │   │   ├── dnd5e.js             # pure rule functions
 │   │   ├── formatter.js         # Detailed (Slash) / Compact (Prefix) + cross-system dispatch
-│   │   ├── prefixSyntax.js      # r!coc7 / r!dnd shorthand parser
+│   │   ├── prefixSyntax.js      # d!coc7 / d!dnd shorthand parser
 │   │   └── index.js             # shared entry point (performTrpgCheck)
-│   └── prefix/
-│       └── permission.js        # channel permission resolution (Guild mode + overrides + thread inheritance)
+│   ├── prefix/
+│   │   └── permission.js        # channel permission resolution (Guild mode + overrides + thread inheritance)
+│   └── recruit/
+│       ├── index.js             # recruitment DB ops, embed/buttons, close timers, button handler
+│       └── prefixSyntax.js      # b! syntax parser + shared limits
 ├── aspects/
-│   ├── normalization.js         # NFKC normalization (full-width → half-width)
+│   ├── normalization.js         # NFKC normalization + width/case-insensitive prefix matching
 │   └── language.js              # thin wrapper around utils/i18n.js resolveLang
 ├── events/
 │   ├── ready.js
 │   ├── interactionCreate.js     # resolves lang via getLang(interaction), dispatches to commands
-│   ├── messageCreate.js         # !apply/!revoke + r!/d! Prefix Adapter
+│   ├── messageCreate.js         # a!/r! applications + d! dice + b! recruitment
 │   ├── guildCreate.js
 │   └── guildDelete.js
 ├── utils/
 │   ├── db.js
 │   ├── modLog.js
 │   ├── applyExport.js
+│   ├── guildCleanup.js          # 30-day deletion queue for servers the bot has left
 │   └── i18n.js                  # t() / resolveLang() / getUserLang() / getGuildLang()
 ├── data/
 │   └── jsons/lang/
@@ -177,7 +208,11 @@ hourly_messages         Hourly announcement messages
 guild_lang / user_lang   Language settings (server / personal)
 guild_prefix_settings    Prefix mode per guild (all/selected/disabled)
 prefix_channel_settings  Per-channel prefix override (allow/deny)
+recruits / recruit_members  Recruitment posts and members
+guild_deletion_queue     Scheduled deletion of server data
 ```
+
+When Nexus is removed from a server, that server's data is kept for 30 days and then deleted from every guild-scoped table. Re-adding Nexus within 30 days cancels the deletion. Servers the bot left while offline are detected and scheduled at startup.
 
 ## Setup
 
@@ -186,7 +221,7 @@ prefix_channel_settings  Per-channel prefix override (allow/deny)
 - Node.js 20+
 - Turso account and database
 - A Discord application created in the Discord Developer Portal
-- **Message Content Intent** enabled in the Developer Portal (required for `!apply`/`!revoke` and `r!`/`d!` prefix commands)
+- **Message Content Intent** enabled in the Developer Portal (required for the `a!` / `r!` / `d!` / `b!` prefix commands)
 
 ### Installation
 
@@ -225,16 +260,16 @@ pm2 start index.js --name nexus
 ## Prefix Dice Quick Reference
 
 ```
-r!2d6                  Roll 2d6
+d!2d6                  Roll 2d6
 d!2d6+1d4-3            Up to 3 dice groups, addition/subtraction only
-r!coc7 60              CoC 7th check, skill 60
-r!coc6 60              CoC 6th check, skill 60
-r!dnd +5               D&D 5e check, modifier +5
-r!dnd +5 adv           ... with advantage
-r!dnd +5 dis           ... with disadvantage
+d!coc7 60              CoC 7th check, skill 60
+d!coc6 60              CoC 6th check, skill 60
+d!dnd +5               D&D 5e check, modifier +5
+d!dnd +5 adv           ... with advantage
+d!dnd +5 dis           ... with disadvantage
 ```
 
-Full-width input (`ｒ！２ｄ６`) works identically. Availability per channel is controlled by `/dice-prefix`.
+Full-width input (`ｄ！２ｄ６`) works identically. `r!` is no longer a dice prefix. Availability per channel is controlled by `/dice-prefix`.
 
 ## Version Roadmap
 
@@ -243,7 +278,8 @@ Full-width input (`ｒ！２ｄ６`) works identically. Availability per channel
 | v0.7.0 | Application system | Done |
 | v0.8.0 | Moderation suite | Done |
 | v0.9.0 | Dice/TRPG engine (coc7, coc6, dnd5e) + Prefix permission system | Done |
-| v0.10.0 | Additional TRPG systems (sw25, dx3), Session/Recruitment integration | Planned |
+| v0.10.0 | Recruitment (`/recruit`, `b!`) + prefix redesign (`a!` / `r!` / `d!`) | Done |
+| v0.11.0 | Additional TRPG systems (sw25, dx3), Session integration | Planned |
 | v1.0.0 | Stable public release | Planned |
 | v2.0.0 | Paid plans, Rust (serenity) migration | Planned |
 
