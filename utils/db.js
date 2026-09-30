@@ -137,7 +137,48 @@ export async function initDb() {
         permission TEXT NOT NULL CHECK (permission IN ('allow', 'deny')),
         PRIMARY KEY (guild_id, channel_id)
       )`,
+      `CREATE TABLE IF NOT EXISTS recruits (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        guild_id    TEXT    NOT NULL,
+        channel_id  TEXT    NOT NULL,
+        message_id  TEXT,
+        author_id   TEXT    NOT NULL,
+        author_name TEXT,
+        title       TEXT    NOT NULL,
+        description TEXT,
+        capacity    INTEGER,
+        end_at      INTEGER,
+        lang        TEXT    NOT NULL DEFAULT 'en',
+        status      TEXT    NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'closed')),
+        close_reason TEXT,
+        created_at  INTEGER NOT NULL,
+        closed_at   INTEGER
+      )`,
+      `CREATE TABLE IF NOT EXISTS recruit_members (
+        recruit_id INTEGER NOT NULL,
+        guild_id   TEXT    NOT NULL,
+        user_id    TEXT    NOT NULL,
+        username   TEXT,
+        joined_at  INTEGER NOT NULL,
+        PRIMARY KEY (recruit_id, user_id)
+      )`,
+      `CREATE TABLE IF NOT EXISTS guild_deletion_queue (
+        guild_id     TEXT PRIMARY KEY,
+        scheduled_at INTEGER NOT NULL
+      )`,
     ],
     "write",
   );
+
+  // ---- 既存DB向けの列追加 ----
+  // CREATE TABLE IF NOT EXISTS は既存テーブルに列を足さないため、不足分だけ追加する
+  await addColumnIfMissing("recruits", "author_name", "TEXT");
+  await addColumnIfMissing("recruit_members", "username", "TEXT");
+}
+
+async function addColumnIfMissing(table, column, type) {
+  const { rows } = await db.execute(`PRAGMA table_info(${table})`);
+  if (rows.some((r) => r.name === column)) return;
+  await db.execute(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+  console.log(`Added column ${table}.${column}`);
 }

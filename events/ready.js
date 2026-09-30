@@ -1,6 +1,8 @@
 import { EmbedBuilder } from "discord.js";
 import { db } from "../utils/db.js";
 import { schedulePollEnd } from "../commands/poll.js";
+import { restoreRecruits, purgeClosedRecruits } from "../components/recruit/index.js";
+import { purgeExpiredGuilds, reconcileGuildDeletions } from "../utils/guildCleanup.js";
 import { registerGuild } from "./guildCreate.js";
 
 export default {
@@ -11,8 +13,12 @@ export default {
     await registerExistingGuilds(client);
     await restoreReminders(client);
     await restorePolls(client);
+    await restoreRecruits(client);
     await cleanupExpiredData(client);
     setInterval(() => cleanupExpiredData(client), 60 * 60 * 1000);
+    await reconcileGuildDeletions(client);
+    await purgeExpiredGuilds();
+    setInterval(() => purgeExpiredGuilds(), 60 * 60 * 1000);
     scheduleHourlyAnnouncement(client);
   },
 };
@@ -89,6 +95,9 @@ async function cleanupExpiredData(client) {
         .catch(console.error);
     }
   }
+  // 締切から一定期間が経過した募集を削除（全サーバー共通）
+  await purgeClosedRecruits();
+
   console.log("Cleanup completed.");
 }
 

@@ -3,6 +3,7 @@ import { getLang, resolveLang, t } from "../utils/i18n.js";
 import { EmbedBuilder } from "discord.js";
 import { handleTimerStopSelect } from "../commands/timer.js";
 import { handlePollVote } from "../commands/poll.js";
+import { handleRecruitButton } from "../components/recruit/index.js";
 
 export default {
   name: "interactionCreate",
@@ -17,6 +18,11 @@ export default {
       // ---- 投票ボタン ----
       if (customId.startsWith("poll_vote_")) {
         return handlePollVote(interaction, lang);
+      }
+
+      // ---- 募集ボタン ----
+      if (customId.startsWith("recruit_")) {
+        return handleRecruitButton(interaction, lang);
       }
 
       // ---- 申請ID表示 ----
@@ -126,12 +132,11 @@ export default {
                   { name: "ID", value: `\`${id}\``, inline: true },
                   {
                     name: t(appLang, "commands.apply.field_content"),
-                    value: app.content,
-                    inline: true,
-                  },
-                  {
-                    name: t(appLang, "commands.apply.field_comment"),
-                    value: app.comment ?? t(appLang, "commands.apply.none"),
+                    // Embed の field value は最大1024文字
+                    value:
+                      app.content.length > 1024
+                        ? app.content.slice(0, 1021) + "..."
+                        : app.content,
                   },
                 )
                 .setTimestamp(),

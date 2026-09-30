@@ -1,7 +1,7 @@
 /**
  * TRPG Prefix Shorthand Parser
  * ------------------------------------------------------------
- * 責務: Prefix Adapter (r! / d!) 向けのTRPG短縮構文を
+ * 責務: Prefix Adapter (d!) 向けのTRPG短縮構文を
  * { system, params } へ変換するだけ。Discord/DBには依存しない。
  *
  * 対応構文:
@@ -16,7 +16,7 @@
  * 既存の汎用ダイス式 (2d6+1d4-3 等) は先頭トークンが数字/dで始まるため、
  * 先頭トークンが登録済みTRPGキーワードの場合のみTRPG構文として解釈する。
  * それ以外は null を返し、呼び出し側は既存の Dice Parser へフォールバックする
- * （＝既存のr!2d6等の挙動は一切変更しない）。
+ * （＝既存のd!2d6等の挙動は一切変更しない）。
  *
  * 新システム追加時: SHORTHAND_TO_SYSTEM へ1エントリ追加するだけでよい。
  * 百分率ダイス系（target指定のみ）なら COC_LIKE_SYSTEM_IDS にも追加する。
@@ -36,7 +36,7 @@ const MODE_ALIASES = {
 };
 
 /**
- * @param {string} body "r!"/"d!" を除いた後の文字列（正規化・trim済み想定）
+ * @param {string} body "d!" を除いた後の文字列（正規化・trim済み想定）
  * @returns {{ system: string, params: object } | null}
  */
 export function parsePrefixTrpgShorthand(body) {

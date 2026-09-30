@@ -1,6 +1,6 @@
 /**
  * Prefix Permission Component
- * 責務: 指定チャンネルで Prefix Command (r! / d!) を実行してよいかどうかの
+ * 責務: 指定チャンネルで Prefix Command (d!) を実行してよいかどうかの
  * 判定だけを行う。Discordへの返信・DB以外の処理は行わない。
  *
  * 判定優先順位:

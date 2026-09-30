@@ -6,12 +6,24 @@ import {
   ButtonBuilder,
   ButtonStyle,
 } from "discord.js";
-import { normalizeForPrefix } from "../aspects/normalization.js";
+import { matchPrefix, normalizeForPrefix, normalizeInput } from "../aspects/normalization.js";
 import { isPrefixAllowed } from "../components/prefix/permission.js";
 import { rollDiceExpression } from "../components/dice/index.js";
 import { performTrpgCheck } from "../components/trpg/index.js";
 import { parsePrefixTrpgShorthand } from "../components/trpg/prefixSyntax.js";
 import { getTrpgFormatter, getTrpgColor } from "../components/trpg/formatter.js";
+import { publishRecruit, displayNameOf } from "../components/recruit/index.js";
+import { parseRecruitPrefix } from "../components/recruit/prefixSyntax.js";
+
+// a! = 申請 / r! = 申請取り消し / d! = ダイス / b! = 募集
+const PREFIXES = ["a!", "r!", "d!", "b!"];
+
+// Embed の field value は最大1024文字
+const EMBED_FIELD_MAX = 1024;
+function truncateField(str, max = EMBED_FIELD_MAX) {
+  const text = String(str ?? "");
+  return text.length > max ? text.slice(0, max - 3) + "..." : text;
+}
 
 function generateId() {
   const date    = new Date();
@@ -56,10 +68,14 @@ export default {
       }
     }
 
-    // ---- Prefix Adapter: r! / d! ダイスコマンド ----
-    // 全角/半角の両対応のため NFKC 正規化してから判定する
-    const normalizedForPrefix = normalizeForPrefix(message.content);
-    if (normalizedForPrefix.startsWith("r!") || normalizedForPrefix.startsWith("d!")) {
+    // ---- プレフィクスコマンド ----
+    // a! = 申請 / r! = 申請取り消し / d! = ダイス / b! = 募集
+    // 全角/半角・大文字/小文字を問わず判定する（NFKC正規化）
+    const matched = matchPrefix(message.content, PREFIXES);
+    if (!matched) return;
+
+    // ---- d! ダイスコマンド ----
+    if (matched.prefix === "d!") {
       // Threadの場合は親チャンネルのOverrideも考慮する
       const parentChannelId =
         typeof message.channel?.isThread === "function" && message.channel.isThread()
@@ -71,9 +87,9 @@ export default {
       // 禁止チャンネルでは何も返信しない（silent ignore）
       if (!allowed) return;
 
-      const expression = normalizedForPrefix.slice(2).trim();
+      const expression = normalizeForPrefix(matched.body);
 
-      // ---- TRPG短縮構文（r!coc / r!dnd 等）を先に判定 ----
+      // ---- TRPG短縮構文（d!coc7 / d!dnd 等）を先に判定 ----
       // 汎用ダイス式と衝突しない構文のみ該当するため、既存挙動には影響しない
       const trpgShorthand = parsePrefixTrpgShorthand(expression);
       if (trpgShorthand) {
@@ -117,33 +133,62 @@ export default {
       return;
     }
 
-    // ---- 申請コマンド ----
-    const content = message.content.trim();
+    // ---- b! 募集 ----
+    // 構文: b!<タイトル> [@人数] [30分|2時間]（2行目以降は詳細）
+    if (matched.prefix === "b!") {
+      const parsed = parseRecruitPrefix(matched.body);
+      if (!parsed.ok) {
+        await message
+          .reply(t(lang, `commands.recruit.${parsed.error}`, parsed.vars))
+          .catch(console.error);
+        return;
+      }
 
-    // !apply
-    if (content.startsWith("!apply ")) {
-      const args = content.slice(7).trim();
-      if (!args) return message.reply(t(lang, "commands.apply.usage"));
+      await publishRecruit(message.client, {
+        // 募集投稿は b! のメッセージへの返信にする（本人への返信通知は不要）
+        send: (payload) =>
+          message.reply({ ...payload, allowedMentions: { repliedUser: false } }),
+        guildId:     message.guildId,
+        channelId:   message.channelId,
+        authorId:    message.author.id,
+        authorName:  displayNameOf(message.member, message.author),
+        title:       parsed.title,
+        description: parsed.description,
+        capacity:    parsed.capacity,
+        endAt:       parsed.duration ? Date.now() + parsed.duration * 60 * 1000 : null,
+        lang,
+      }).catch(console.error);
+      return;
+    }
 
+    // ---- a! 申請 ----
+    if (matched.prefix === "a!") {
       const { rows: settings } = await db
         .execute({ sql: `SELECT * FROM apply_settings WHERE guild_id = ?`, args: [message.guildId] })
         .catch(() => ({ rows: [] }));
 
       const setting = settings[0];
-      if (!setting?.apply_channel_id || message.channelId !== setting.apply_channel_id) {
+
+      // 申請チャンネル未設定のサーバーでは反応しない
+      // （"a!" は短く日常会話と衝突しやすいため、機能を使っていないサーバーで誤反応させない）
+      if (!setting?.apply_channel_id) return;
+
+      if (message.channelId !== setting.apply_channel_id) {
         return message
           .reply({ content: t(lang, "commands.apply.wrong_channel") })
           .then((msg) => setTimeout(() => msg.delete().catch(() => {}), 5000));
       }
 
-      const [content_, ...commentParts] = args.split(" ");
-      const comment = commentParts.join(" ") || null;
+      // コメント欄は廃止。a! 以降の本文をすべて申請内容とする
+      const content_ = matched.body;
+      if (!content_) return message.reply(t(lang, "commands.apply.usage"));
+
       const id  = generateId();
       const now = Date.now();
 
       await db.execute({
-        sql:  `INSERT INTO applications (id, guild_id, channel_id, user_id, username, content, comment, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?)`,
-        args: [id, message.guildId, message.channelId, message.author.id, message.author.username, content_, comment, now],
+        sql:  `INSERT INTO applications (id, guild_id, channel_id, user_id, username, content, comment, status, created_at) VALUES (?, ?, ?, ?, ?, ?, NULL, 'pending', ?)`,
+        args: [id, message.guildId, message.channelId, message.author.id, message.author.username, content_, now],
       });
 
       // 申請者にDMでID通知
@@ -155,8 +200,7 @@ export default {
               .setColor(0x2ecc71)
               .addFields(
                 { name: "ID",                                              value: `\`${id}\``,                                         inline: true },
-                { name: t(lang, "commands.apply.field_content"),           value: content_,                                            inline: true },
-                { name: t(lang, "commands.apply.field_comment"),           value: comment ?? t(lang, "commands.apply.none") },
+                { name: t(lang, "commands.apply.field_content"),           value: truncateField(content_) },
               )
               .setDescription(t(lang, "commands.apply.dm_id"))
               .setTimestamp(),
@@ -187,8 +231,7 @@ export default {
         .addFields(
           { name: "ID",                                              value: `\`${id}\``,                    inline: true },
           { name: t(lang, "commands.apply.field_status"),           value: "pending",                       inline: true },
-          { name: t(lang, "commands.apply.field_content"),          value: content_,                        inline: true },
-          { name: t(lang, "commands.apply.field_comment"),          value: comment ?? t(lang, "commands.apply.none") },
+          { name: t(lang, "commands.apply.field_content"),          value: truncateField(content_) },
           { name: t(lang, "commands.apply.field_applicant"),        value: `<@${message.author.id}>`,       inline: true },
           { name: t(lang, "commands.apply.field_server"),           value: message.guild.name,              inline: true },
           { name: t(lang, "commands.apply.field_channel"),          value: `<#${message.channelId}>`,       inline: true },
@@ -229,11 +272,13 @@ export default {
         const adminCh = message.guild.channels.cache.get(setting.admin_channel_id);
         if (adminCh) await adminCh.send({ embeds: [applyEmbed], components: [buttons] }).catch(console.error);
       }
+      return;
     }
 
-    // !revoke
-    if (content.startsWith("!revoke ")) {
-      const id = content.slice(8).trim();
+    // ---- r! 申請取り消し ----
+    if (matched.prefix === "r!") {
+      // IDも全角/小文字入力を許容する（例: "ａｐｌ－２０２６…" → "APL-2026…"）
+      const id = normalizeInput(matched.body).toUpperCase();
       if (!id) return message.reply(t(lang, "commands.apply.revoke_usage"));
 
       const { rows } = await db.execute({ sql: `SELECT * FROM applications WHERE id = ?`, args: [id] });
@@ -256,8 +301,7 @@ export default {
         .setColor(0xe74c3c)
         .addFields(
           { name: "ID",                                              value: `\`${id}\``,                         inline: true },
-          { name: t(lang, "commands.apply.field_content"),          value: app.content,                         inline: true },
-          { name: t(lang, "commands.apply.field_comment"),          value: app.comment ?? t(lang, "commands.apply.none") },
+          { name: t(lang, "commands.apply.field_content"),          value: truncateField(app.content) },
           { name: t(lang, "commands.apply.field_cancelled_by"),     value: `<@${message.author.id}>`,           inline: true },
         )
         .setTimestamp();

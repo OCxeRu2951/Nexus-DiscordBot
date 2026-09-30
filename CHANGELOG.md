@@ -6,6 +6,35 @@ All notable changes to Nexus Bot are documented in this file.
 
 ---
 
+## [v0.10.0] - 2026-09-30
+
+### Added
+- `/recruit` — recruitment posts with Join / Leave / Close buttons
+  - Options: `title`, `capacity` (1-50), `duration` (minutes until the deadline), `description`, `mention` (role to notify)
+  - The member list and count update in place; closes automatically when full or at the deadline, or manually by the host / members with `Manage Messages`
+  - On close, the host and all members are mentioned in a reply to the post
+  - Capacity cannot be exceeded by simultaneous clicks; deadline timers are restored after a restart
+  - Closed recruitments are deleted 30 days after closing
+  - The host's and members' display names are stored so the dashboard can show them
+- Dashboard: Recruitment page listing open and closed posts with host, channel, deadline and members, plus an open-recruitments count on the overview
+- Server data auto-deletion: when Nexus is removed from a server, its data is kept for 30 days and then deleted. Re-adding Nexus within 30 days cancels the deletion, and servers left while the bot was offline are detected at startup
+- `b!` prefix for recruitment: `b!<title> [@count] [30m|2h]`, with details on the following lines (e.g. `b!Board games @3 60m`)
+
+### Changed
+- **Breaking:** application prefixes changed from `!apply` / `!revoke` to `a!` / `r!`
+- **Breaking:** `r!` is no longer a dice prefix; dice use `d!` only (`d!2d6`, `d!coc7 60`, `d!dnd +5 adv`)
+- All prefixes (`a!` / `r!` / `d!` / `b!`) are now matched regardless of full-width/half-width and upper/lower case (e.g. `Ａ！`, `ｒ！`, `Ｄ!`)
+- `a!` no longer takes a separate comment; everything after `a!` (including spaces and line breaks) is stored as the application content
+- `a!` is ignored in servers where no application channel is configured
+- `r!<ID>` accepts full-width and lowercase IDs
+
+### Fixed
+- Leaving a server did not delete its language, prefix, hourly-announcement, guild settings or poll vote data, and tried to delete `reminders` / `afk` by a `guild_id` column that does not exist
+- Applications with content longer than 1024 characters could not be shown in the notification embeds
+- `/help command:<name>` showed a raw translation key instead of the "Options" heading
+
+---
+
 ## [v0.9.0] - 2026-08-10
 
 ### Added
