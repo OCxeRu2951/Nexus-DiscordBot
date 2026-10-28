@@ -508,7 +508,8 @@
       "error": "An error occurred while executing the command.",
       "no_permission": "You do not have permission.",
       "no_reason": "No reason",
-      "target_higher": "You cannot do this to a member whose highest role is equal to or higher than yours."
+      "target_higher": "You cannot do this to a member whose highest role is equal to or higher than yours.",
+      "cooldown": "Too many requests in a row. Please wait about {seconds} seconds and try again."
     },
     "help": {
       "description": "Display command information",

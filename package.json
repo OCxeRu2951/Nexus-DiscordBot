@@ -4,6 +4,9 @@
   "description": "Utility bot with Turso DB",
   "main": "index.js",
   "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "start": "node index.js",
     "deploy": "node deploy-commands.js"

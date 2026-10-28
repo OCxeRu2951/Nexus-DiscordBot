@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, PermissionFlagsBits } from "discord.js";
+import { SlashCommandBuilder, PermissionFlagsBits, InteractionContextType } from "discord.js";
 import { t } from "../utils/i18n.js";
 import { sendModLog } from "../utils/modLog.js";
 import { getExecutor, canManageRole } from "../utils/hierarchy.js";
@@ -7,6 +7,7 @@ export default {
   data: new SlashCommandBuilder()
     .setName("role")
     .setDescription("Grant or revoke a role")
+    .setContexts(InteractionContextType.Guild)
     .addStringOption((opt) =>
       opt.setName("action").setDescription("Action").setRequired(true)
         .addChoices({ name: "add", value: "add" }, { name: "remove", value: "remove" }),
@@ -44,6 +45,6 @@ export default {
       await interaction.reply(t(lang, "commands.role.remove_success", { userId: target.id, roleId: role.id }));
     }
 
-    await sendModLog(interaction.client, interaction.guildId, { action: `role_${action}`, target, moderator: interaction.user, reason: `${action} <@&${role.id}>` });
+    await sendModLog(interaction.guild, `role_${action}`, target, interaction.user, `${action} <@&${role.id}>`);
   },
 };

@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, PermissionFlagsBits } from "discord.js";
+import { SlashCommandBuilder, PermissionFlagsBits, InteractionContextType } from "discord.js";
 import { t } from "../utils/i18n.js";
 import { sendModLog } from "../utils/modLog.js";
 
@@ -6,6 +6,7 @@ export default {
   data: new SlashCommandBuilder()
     .setName("untimeout")
     .setDescription("Remove a timeout from a user")
+    .setContexts(InteractionContextType.Guild)
     .addUserOption((opt) => opt.setName("user").setDescription("Target user").setRequired(true))
     .addStringOption((opt) => opt.setName("reason").setDescription("Reason").setRequired(false))
     .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
@@ -20,6 +21,6 @@ export default {
 
     await member.timeout(null, reason);
     await interaction.reply(t(lang, "commands.untimeout.success", { userId: target.id }));
-    await sendModLog(interaction.client, interaction.guildId, { action: "untimeout", target, moderator: interaction.user, reason });
+    await sendModLog(interaction.guild, "untimeout", target, interaction.user, reason);
   },
 };

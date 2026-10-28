@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } from "discord.js";
+import { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, InteractionContextType } from "discord.js";
 import { db } from "../utils/db.js";
 import { t } from "../utils/i18n.js";
 
@@ -6,6 +6,7 @@ export default {
   data: new SlashCommandBuilder()
     .setName("note")
     .setDescription("Manage notes for a user")
+    .setContexts(InteractionContextType.Guild)
     .addSubcommand((sub) =>
       sub.setName("add").setDescription("Add a note")
         .addUserOption((opt) => opt.setName("user").setDescription("Target user").setRequired(true))

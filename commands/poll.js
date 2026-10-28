@@ -4,6 +4,7 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  InteractionContextType,
 } from "discord.js";
 import { db } from "../utils/db.js";
 import { t } from "../utils/i18n.js";
@@ -199,6 +200,7 @@ export default {
   data: new SlashCommandBuilder()
     .setName("poll")
     .setDescription("Create a poll")
+    .setContexts(InteractionContextType.Guild)
     .addStringOption((opt) =>
       opt.setName("question").setDescription("Question").setRequired(true),
     )

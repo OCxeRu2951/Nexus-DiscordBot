@@ -7,6 +7,7 @@ import {
   StringSelectMenuBuilder,
   ChannelType,
   EmbedBuilder,
+  InteractionContextType,
 } from "discord.js";
 import { db } from "../utils/db.js";
 import { t } from "../utils/i18n.js";
@@ -16,6 +17,7 @@ export default {
   data: new SlashCommandBuilder()
     .setName("apply-config")
     .setDescription("Configure the application system")
+    .setContexts(InteractionContextType.Guild)
     .addStringOption((opt) =>
       opt.setName("mode").setDescription("Mode").setRequired(true)
         .addChoices(
@@ -122,11 +124,11 @@ export default {
 
     if (mode === "export") {
       await interaction.deferReply({ ephemeral: true });
-      const csv = await exportApplicationsCsv(interaction.guildId);
-      const buf = Buffer.from(csv, "utf-8");
+      const file = await exportApplications(interaction.guildId);
+      if (!file) return interaction.editReply(t(lang, "commands.apply.view_empty"));
       return interaction.editReply({
         content: t(lang, "commands.apply.export_done"),
-        files:   [{ attachment: buf, name: `applications_${interaction.guildId}.csv` }],
+        files:   [file],
       });
     }
   },

@@ -13,7 +13,8 @@ import { db } from "./db.js";
 const GRACE_PERIOD_MS = 30 * 24 * 60 * 60 * 1000; // 30日
 
 // guild_id を持つテーブル一覧（削除対象）
-// 注: reminders / afk は user_id ベースで guild_id 列を持たないため対象外。
+// 注: reminders は guild_id 列を持たないため対象外。afk は user_id が主キーで全サーバー共通の状態のため対象外
+//     （Bot が抜けたサーバーで設定された AFK は ready.js の自動解除で既定の時間に解除する）。
 //     poll_votes は poll_id ベースで guild_id 列を持たないため、
 //     polls 経由のサブクエリで別途削除する。
 const GUILD_SCOPED_TABLES = [

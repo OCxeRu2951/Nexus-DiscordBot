@@ -136,7 +136,7 @@ Resolution priority: **User manual setting → Server manual setting → Discord
 
 | Layer | Technology |
 | --- | --- |
-| Runtime | Node.js 20+ (ESModule) |
+| Runtime | Node.js 24+ (ESModule) |
 | Framework | discord.js v14 |
 | Database | Turso (libSQL) |
 | Hosting | GCP e2-micro |
@@ -234,7 +234,7 @@ When Nexus is removed from a server, that server's data is kept for 30 days and 
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js 24+
 - Turso account and database
 - A Discord application created in the Discord Developer Portal
 - **Message Content Intent** enabled in the Developer Portal (required for the `a!` / `r!` / `d!` / `b!` prefix commands)

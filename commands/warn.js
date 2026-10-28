@@ -2,6 +2,7 @@ import {
   SlashCommandBuilder,
   PermissionFlagsBits,
   EmbedBuilder,
+  InteractionContextType,
 } from "discord.js";
 import { db } from "../utils/db.js";
 import { t } from "../utils/i18n.js";
@@ -12,6 +13,7 @@ export default {
   data: new SlashCommandBuilder()
     .setName("warn")
     .setDescription("Issue a warning to a user")
+    .setContexts(InteractionContextType.Guild)
     .addUserOption((opt) =>
       opt.setName("user").setDescription("Target user").setRequired(true),
     )

@@ -34,6 +34,30 @@ export default {
   },
 };
 
+const SETTING_DEFAULTS = {
+  afk_hours: 24,
+  poll_days: 7,
+  warnings_days: 90,
+  application_days: 90,
+};
+
+// ダッシュボードの入力範囲と同じ。0 や負数が入っていると削除の基準が現在以降になり、すべて消えてしまうため、
+// 範囲外の値のときはそのサーバーではその削除を行わない
+const SETTING_RANGES = {
+  afk_hours: [1, 720],
+  poll_days: [1, 365],
+  warnings_days: [1, 365],
+  application_days: [1, 365],
+};
+
+function settingValue(row, key) {
+  const raw = row?.[key];
+  if (raw === null || raw === undefined) return SETTING_DEFAULTS[key];
+  const value = Number(raw);
+  const [min, max] = SETTING_RANGES[key];
+  return Number.isInteger(value) && value >= min && value <= max ? value : null;
+}
+
 async function loadSetting(guildId) {
   const { rows } = await db
     .execute({
@@ -43,50 +67,58 @@ async function loadSetting(guildId) {
     .catch(() => ({ rows: [] }));
 
   return {
-    afk_hours: rows[0]?.afk_hours ?? 24,
-    poll_days: rows[0]?.poll_days ?? 7,
-    warnings_days: rows[0]?.warnings_days ?? 90,
-    application_days: rows[0]?.application_days ?? 90,
+    afk_hours: settingValue(rows[0], "afk_hours"),
+    poll_days: settingValue(rows[0], "poll_days"),
+    warnings_days: settingValue(rows[0], "warnings_days"),
+    application_days: settingValue(rows[0], "application_days"),
   };
+}
+
+// 期限切れの AFK を本人に通知して解除する
+async function expireAfk(client, rows, hours) {
+  for (const row of rows) {
+    const user = await client.users.fetch(row.user_id).catch(() => null);
+    if (user) {
+      await user
+        .send(
+          `AFKを設定してから **${hours}時間** が経過したため、自動的に解除しました。\n理由: ${row.reason}`,
+        )
+        .catch(() => {});
+    }
+    // 通知の間に設定し直された AFK は消さない
+    await db
+      .execute({
+        sql: `DELETE FROM afk WHERE user_id = ? AND since = ?`,
+        args: [row.user_id, row.since],
+      })
+      .catch(console.error);
+  }
 }
 
 async function cleanupExpiredData(client) {
   for (const [guildId] of client.guilds.cache) {
     const config = await loadSetting(guildId);
     const now = Date.now();
-    const expireThreshold = now - config.afk_hours * 60 * 60 * 1000;
 
-    const { rows: expiredAfk } = await db
-      .execute({
-        sql: `SELECT * FROM afk WHERE since < ?`,
-        args: [expireThreshold],
-      })
-      .catch(() => ({ rows: [] }));
-
-    for (const row of expiredAfk) {
-      const user = await client.users.fetch(row.user_id).catch(() => null);
-      if (user) {
-        await user
-          .send(
-            `AFKを設定してから **${config.afk_hours}時間** が経過したため、自動的に解除しました。\n理由: ${row.reason}`,
-          )
-          .catch(() => {});
-      }
+    // AFK はユーザー単位だが、自動解除の時間は AFK を設定したサーバーの設定だけで決める
+    if (config.afk_hours) {
+      const { rows: expiredAfk } = await db
+        .execute({
+          sql: `SELECT * FROM afk WHERE guild_id = ? AND since < ?`,
+          args: [guildId, now - config.afk_hours * 60 * 60 * 1000],
+        })
+        .catch(() => ({ rows: [] }));
+      await expireAfk(client, expiredAfk, config.afk_hours);
     }
 
-    await db
-      .execute({
-        sql: `DELETE FROM afk WHERE since < ?`,
-        args: [expireThreshold],
-      })
-      .catch(console.error);
-
-    await db
-      .execute({
-        sql: `DELETE FROM polls WHERE guild_id = ? AND end_at IS NOT NULL AND end_at < ?`,
-        args: [guildId, now - config.poll_days * 24 * 60 * 60 * 1000],
-      })
-      .catch(console.error);
+    if (config.poll_days) {
+      await db
+        .execute({
+          sql: `DELETE FROM polls WHERE guild_id = ? AND end_at IS NOT NULL AND end_at < ?`,
+          args: [guildId, now - config.poll_days * 24 * 60 * 60 * 1000],
+        })
+        .catch(console.error);
+    }
 
     if (config.warnings_days) {
       await db
@@ -106,6 +138,19 @@ async function cleanupExpiredData(client) {
         .catch(console.error);
     }
   }
+  // 設定したサーバーが分からない AFK（列の追加前に設定されたもの）と、Bot が抜けたサーバーで設定された AFK は既定の時間で解除する
+  const { rows: staleAfk } = await db
+    .execute({
+      sql: `SELECT * FROM afk WHERE since < ?`,
+      args: [Date.now() - SETTING_DEFAULTS.afk_hours * 60 * 60 * 1000],
+    })
+    .catch(() => ({ rows: [] }));
+  await expireAfk(
+    client,
+    staleAfk.filter((row) => !row.guild_id || !client.guilds.cache.has(String(row.guild_id))),
+    SETTING_DEFAULTS.afk_hours,
+  );
+
   // 締切から一定期間が経過した募集を削除（全サーバー共通）
   await purgeClosedRecruits();
   await purgeProcessedRecruitActions();
@@ -268,6 +313,8 @@ async function getHourlyPayload(guildId, hour, minute) {
 
   if (entry.content) {
     payload.content = replacePlaceholders(entry.content, hour, minute);
+    // 時報の本文はサーバー管理者が設定するため、@everyone やロールのメンションも従来どおり通知する
+    payload.allowedMentions = { parse: ["users", "roles", "everyone"] };
   }
 
   if (entry.embed) {

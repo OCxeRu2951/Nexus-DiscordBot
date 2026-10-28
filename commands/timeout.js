@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, PermissionFlagsBits } from "discord.js";
+import { SlashCommandBuilder, PermissionFlagsBits, InteractionContextType } from "discord.js";
 import { t } from "../utils/i18n.js";
 import { sendModLog } from "../utils/modLog.js";
 import { getExecutor, outranks } from "../utils/hierarchy.js";
@@ -13,6 +13,7 @@ export default {
   data: new SlashCommandBuilder()
     .setName("timeout")
     .setDescription("Set a timeout for a user")
+    .setContexts(InteractionContextType.Guild)
     .addUserOption((opt) => opt.setName("user").setDescription("Target user").setRequired(true))
     .addStringOption((opt) =>
       opt.setName("duration").setDescription("Duration").setRequired(true)
@@ -48,6 +49,6 @@ export default {
     await member.timeout(durationMs, reason);
     await interaction.reply(t(lang, "commands.timeout.success", { userId: target.id, duration: durationStr }));
     await target.send(t(lang, "commands.timeout.dm", { guild: interaction.guild.name, duration: durationStr, reason })).catch(() => {});
-    await sendModLog(interaction.client, interaction.guildId, { action: "timeout", target, moderator: interaction.user, reason, extra: durationStr });
+    await sendModLog(interaction.guild, "timeout", target, interaction.user, reason, { duration: durationStr });
   },
 };
