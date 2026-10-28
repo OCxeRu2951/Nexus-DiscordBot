@@ -7,6 +7,13 @@ import { startRecruitActionWorker, purgeProcessedRecruitActions } from "../compo
 import { purgeExpiredGuilds, reconcileGuildDeletions } from "../utils/guildCleanup.js";
 import { registerGuild } from "./guildCreate.js";
 
+// 時報の添付ファイル（hourly_messages.file_url）として取得してよいホスト。
+// file_url はダッシュボードからも保存できるため、任意のURL（内部アドレスを含む）をBotのサーバーから取りに行かないよう制限する。
+// ダッシュボード側の入力制限と同じ一覧にすること
+const HOURLY_FILE_HOSTS      = ["cdn.discordapp.com", "media.discordapp.net"];
+const HOURLY_FILE_MAX_BYTES  = 10 * 1024 * 1024; // Discordの通常のアップロード上限
+const HOURLY_FILE_TIMEOUT_MS = 10 * 1000;
+
 export default {
   name: "clientReady",
   once: true,
@@ -165,6 +172,58 @@ function replacePlaceholders(str, hour, minute) {
     .replace(/{minute}/g, String(minute).padStart(2, "0"));
 }
 
+function isAllowedHourlyFileUrl(raw) {
+  let url;
+  try {
+    url = new URL(raw);
+  } catch {
+    return false;
+  }
+  return (
+    url.protocol === "https:" &&
+    !url.username &&
+    !url.password &&
+    (url.port === "" || url.port === "443") &&
+    HOURLY_FILE_HOSTS.includes(url.hostname)
+  );
+}
+
+/**
+ * 時報の添付ファイルを取得する。許可外のURL・失敗・上限超過の場合は null。
+ */
+async function fetchHourlyFile(guildId, fileUrl) {
+  if (!isAllowedHourlyFileUrl(fileUrl)) {
+    console.warn(`[hourly] file_url is not allowed: guild=${guildId}`);
+    return null;
+  }
+
+  // リダイレクト先で許可外のホストへ飛ばされないよう、リダイレクトは失敗扱いにする
+  const res = await fetch(fileUrl, {
+    redirect: "error",
+    signal: AbortSignal.timeout(HOURLY_FILE_TIMEOUT_MS),
+  });
+  if (!res.ok || !res.body) return null;
+
+  if (Number(res.headers.get("content-length")) > HOURLY_FILE_MAX_BYTES) {
+    await res.body.cancel().catch(() => {});
+    console.warn(`[hourly] file is too large: guild=${guildId}`);
+    return null;
+  }
+
+  // Content-Length が無い・実際と違う場合に備えて、読みながら上限を確認する
+  const chunks = [];
+  let total = 0;
+  for await (const chunk of res.body) {
+    total += chunk.byteLength;
+    if (total > HOURLY_FILE_MAX_BYTES) {
+      console.warn(`[hourly] file is too large: guild=${guildId}`);
+      return null;
+    }
+    chunks.push(chunk);
+  }
+  return Buffer.concat(chunks);
+}
+
 async function getHourlyPayload(guildId, hour, minute) {
   const jst = new Date(Date.now() + 9 * 60 * 60 * 1000);
   const dow = jst.getDay(); // 0=日 〜 6=土
@@ -240,9 +299,8 @@ async function getHourlyPayload(guildId, hour, minute) {
 
   if (entry.file_url) {
     try {
-      const res = await fetch(entry.file_url);
-      if (res.ok) {
-        const buffer = Buffer.from(await res.arrayBuffer());
+      const buffer = await fetchHourlyFile(guildId, entry.file_url);
+      if (buffer) {
         const fileName = entry.file_url.split("/").pop().split("?")[0];
         payload.files = [{ attachment: buffer, name: fileName }];
       }
@@ -272,7 +330,7 @@ async function sendHourlyAnnouncement(client) {
   const hour = jst.getHours();
   const minute = jst.getMinutes();
 
-  for (const [guildId] of client.guilds.cache) {
+  for (const [guildId, guild] of client.guilds.cache) {
     const { rows } = await db
       .execute({
         sql: `SELECT hourly_channel_id FROM settings WHERE guild_id = ?`,
@@ -282,7 +340,8 @@ async function sendHourlyAnnouncement(client) {
 
     if (!rows.length || !rows[0].hourly_channel_id) continue;
 
-    const channel = client.channels.cache.get(rows[0].hourly_channel_id);
+    // チャンネルIDはダッシュボードからも保存できるため、そのサーバーのチャンネルだけを使う
+    const channel = guild.channels.cache.get(rows[0].hourly_channel_id);
     if (!channel) continue;
 
     const payload = await getHourlyPayload(guildId, hour, minute);

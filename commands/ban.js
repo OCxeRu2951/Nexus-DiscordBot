@@ -1,6 +1,7 @@
 import { SlashCommandBuilder, PermissionFlagsBits } from "discord.js";
 import { t } from "../utils/i18n.js";
 import { sendModLog } from "../utils/modLog.js";
+import { getExecutor, outranks } from "../utils/hierarchy.js";
 
 export default {
   data: new SlashCommandBuilder()
@@ -17,8 +18,12 @@ export default {
     const deleteDays = interaction.options.getInteger("delete_days") ?? 0;
 
     if (target.id === interaction.user.id) return interaction.reply({ content: t(lang, "commands.ban.self"), ephemeral: true });
-    const member = interaction.guild.members.cache.get(target.id);
+    // キャッシュに無いメンバーでも序列を確認できるよう取得する（サーバーにいないユーザーは null）
+    const member = await interaction.guild.members.fetch(target.id).catch(() => null);
     if (member && !member.bannable) return interaction.reply({ content: t(lang, "commands.ban.no_permission"), ephemeral: true });
+    if (member && !outranks(await getExecutor(interaction), member)) {
+      return interaction.reply({ content: t(lang, "commands.common.target_higher"), ephemeral: true });
+    }
 
     await target.send(t(lang, "commands.ban.dm", { guild: interaction.guild.name, reason })).catch(() => {});
     await interaction.guild.members.ban(target.id, { reason, deleteMessageDays: deleteDays });

@@ -271,6 +271,8 @@
       "description": "Grant or revoke a role",
       "not_found": "Target user is not in this server.",
       "too_high": "Cannot manage roles higher than the Bot's highest role.",
+      "above_executor": "You cannot manage roles equal to or higher than your highest role.",
+      "not_assignable": "This role cannot be granted or revoked.",
       "already_has": "The target user already has this role.",
       "not_has": "The target user does not have this role.",
       "add_success": "Added <@&{roleId}> to <@{userId}>.",
@@ -505,7 +507,8 @@
     "common": {
       "error": "An error occurred while executing the command.",
       "no_permission": "You do not have permission.",
-      "no_reason": "No reason"
+      "no_reason": "No reason",
+      "target_higher": "You cannot do this to a member whose highest role is equal to or higher than yours."
     },
     "help": {
       "description": "Display command information",

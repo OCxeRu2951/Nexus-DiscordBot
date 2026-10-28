@@ -283,13 +283,26 @@ export default {
       const id = normalizeInput(matched.body).toUpperCase();
       if (!id) return message.reply(t(lang, "commands.apply.revoke_usage"));
 
-      const { rows } = await db.execute({ sql: `SELECT * FROM applications WHERE id = ?`, args: [id] });
+      // 取り消せるのは申請者本人が、申請したサーバーで行う場合のみ
+      // （他人・他サーバーの申請は存在を明かさないよう not_found と同じ扱いにする）
+      const { rows } = await db.execute({
+        sql:  `SELECT * FROM applications WHERE id = ? AND guild_id = ? AND user_id = ?`,
+        args: [id, message.guildId, message.author.id],
+      });
       if (rows.length === 0) return message.reply(t(lang, "commands.apply.not_found"));
 
       const app = rows[0];
       if (app.status !== "pending") return message.reply(t(lang, "commands.apply.already", { status: app.status }));
 
-      await db.execute({ sql: `UPDATE applications SET status = 'revoked', resolved_at = ? WHERE id = ?`, args: [Date.now(), id] });
+      // 承認・拒否と同時に行われた場合に上書きしないよう、pending のときだけ更新する
+      const revoked = await db.execute({
+        sql:  `UPDATE applications SET status = 'revoked', resolved_at = ? WHERE id = ? AND status = 'pending'`,
+        args: [Date.now(), id],
+      });
+      if (revoked.rowsAffected === 0) {
+        const { rows: latest } = await db.execute({ sql: `SELECT status FROM applications WHERE id = ?`, args: [id] });
+        return message.reply(t(lang, "commands.apply.already", { status: latest[0]?.status ?? app.status }));
+      }
       await message.reply(t(lang, "commands.apply.revoked", { id }));
 
       const { rows: settings } = await db

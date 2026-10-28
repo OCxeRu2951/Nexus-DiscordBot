@@ -1,9 +1,35 @@
 import { db } from "../utils/db.js";
 import { getLang, resolveLang, t } from "../utils/i18n.js";
-import { EmbedBuilder } from "discord.js";
+import { EmbedBuilder, PermissionFlagsBits } from "discord.js";
 import { handleTimerStopSelect } from "../commands/timer.js";
 import { handlePollVote } from "../commands/poll.js";
 import { handleRecruitButton } from "../components/recruit/index.js";
+
+/**
+ * 申請を承認・拒否できるか。
+ * 申請先サーバーの「サーバー管理」権限を持つメンバーか、通知ロールのメンバーのみ
+ * （通知チャンネル方式では、チャンネルを見られる人なら誰でもボタンを押せるため）。
+ */
+async function canModerateApplication(client, app, interaction) {
+  const guildId = String(app.guild_id);
+  // 別サーバーの申請に対するボタンは受け付けない（DM通知のボタンは guildId が null）
+  if (interaction.guildId && interaction.guildId !== guildId) return false;
+
+  const guild = client.guilds.cache.get(guildId);
+  if (!guild) return false;
+  const member = await guild.members.fetch(interaction.user.id).catch(() => null);
+  if (!member) return false;
+  if (member.permissions.has(PermissionFlagsBits.ManageGuild)) return true;
+
+  const { rows } = await db
+    .execute({
+      sql: `SELECT operator_role_id FROM apply_settings WHERE guild_id = ?`,
+      args: [guildId],
+    })
+    .catch(() => ({ rows: [] }));
+  const roleId = rows[0]?.operator_role_id;
+  return Boolean(roleId) && member.roles.cache.has(String(roleId));
+}
 
 export default {
   name: "interactionCreate",
@@ -85,6 +111,13 @@ export default {
         }
 
         const app = rows[0];
+        if (!(await canModerateApplication(client, app, interaction))) {
+          return interaction.reply({
+            content: t(lang, "commands.common.no_permission"),
+            ephemeral: true,
+          });
+        }
+
         if (app.status !== "pending") {
           return interaction.reply({
             content: t(lang, "commands.apply.already", { status: app.status }),
@@ -92,10 +125,22 @@ export default {
           });
         }
 
-        await db.execute({
-          sql: `UPDATE applications SET status = ?, resolved_at = ? WHERE id = ?`,
+        // 同時に押された場合や取り消しと重なった場合に上書きしないよう、pending のときだけ更新する
+        const updated = await db.execute({
+          sql: `UPDATE applications SET status = ?, resolved_at = ? WHERE id = ? AND status = 'pending'`,
           args: [status, Date.now(), id],
         });
+
+        if (updated.rowsAffected === 0) {
+          const { rows: latest } = await db.execute({
+            sql: `SELECT status FROM applications WHERE id = ?`,
+            args: [id],
+          });
+          return interaction.reply({
+            content: t(lang, "commands.apply.already", { status: latest[0]?.status ?? app.status }),
+            ephemeral: true,
+          });
+        }
 
         // ボタンを無効化
         const disabledComponents = interaction.message.components.map(

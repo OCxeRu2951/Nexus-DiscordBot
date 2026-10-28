@@ -1,6 +1,7 @@
 import { SlashCommandBuilder, PermissionFlagsBits } from "discord.js";
 import { t } from "../utils/i18n.js";
 import { sendModLog } from "../utils/modLog.js";
+import { getExecutor, canManageRole } from "../utils/hierarchy.js";
 
 export default {
   data: new SlashCommandBuilder()
@@ -21,8 +22,16 @@ export default {
     const member = interaction.guild.members.cache.get(target.id);
 
     if (!member) return interaction.reply({ content: t(lang, "commands.role.not_found"), ephemeral: true });
+    // @everyone と、連携（Bot・ブースト等）で管理されるロールは付け外しできない
+    if (role.managed || role.id === interaction.guildId) {
+      return interaction.reply({ content: t(lang, "commands.role.not_assignable"), ephemeral: true });
+    }
     if (role.position >= interaction.guild.members.me.roles.highest.position) {
       return interaction.reply({ content: t(lang, "commands.role.too_high"), ephemeral: true });
+    }
+    // Discord本体と同じく、実行者の最上位ロールより下のロールだけ操作できる
+    if (!canManageRole(await getExecutor(interaction), role)) {
+      return interaction.reply({ content: t(lang, "commands.role.above_executor"), ephemeral: true });
     }
 
     if (action === "add") {
