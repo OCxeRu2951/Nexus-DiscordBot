@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, PermissionFlagsBits } from "discord.js";
+import { SlashCommandBuilder, PermissionFlagsBits, InteractionContextType } from "discord.js";
 import { t } from "../utils/i18n.js";
 import { sendModLog } from "../utils/modLog.js";
 import { getExecutor, outranks } from "../utils/hierarchy.js";
@@ -7,6 +7,7 @@ export default {
   data: new SlashCommandBuilder()
     .setName("ban")
     .setDescription("Ban a user")
+    .setContexts(InteractionContextType.Guild)
     .addUserOption((opt) => opt.setName("user").setDescription("Target user").setRequired(true))
     .addStringOption((opt) => opt.setName("reason").setDescription("Reason").setRequired(false))
     .addIntegerOption((opt) => opt.setName("delete_days").setDescription("Delete message days (0-7)").setRequired(false).setMinValue(0).setMaxValue(7))
@@ -28,6 +29,6 @@ export default {
     await target.send(t(lang, "commands.ban.dm", { guild: interaction.guild.name, reason })).catch(() => {});
     await interaction.guild.members.ban(target.id, { reason, deleteMessageDays: deleteDays });
     await interaction.reply(t(lang, "commands.ban.success", { userId: target.id }));
-    await sendModLog(interaction.client, interaction.guildId, { action: "ban", target, moderator: interaction.user, reason });
+    await sendModLog(interaction.guild, "ban", target, interaction.user, reason);
   },
 };

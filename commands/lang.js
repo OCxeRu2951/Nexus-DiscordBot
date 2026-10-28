@@ -1,10 +1,11 @@
-import { SlashCommandBuilder, PermissionFlagsBits } from "discord.js";
+import { SlashCommandBuilder, PermissionFlagsBits, InteractionContextType } from "discord.js";
 import { getLang, setGuildLang, clearGuildLang, t } from "../utils/i18n.js";
 
 export default {
   data: new SlashCommandBuilder()
     .setName("lang")
     .setDescription("Set the server's default Bot language")
+    .setContexts(InteractionContextType.Guild)
     .addStringOption((opt) =>
       opt
         .setName("language")

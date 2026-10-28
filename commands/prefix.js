@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, PermissionFlagsBits } from "discord.js";
+import { SlashCommandBuilder, PermissionFlagsBits, InteractionContextType } from "discord.js";
 import { t } from "../utils/i18n.js";
 import {
   setGuildPrefixMode,
@@ -10,6 +10,7 @@ export default {
   data: new SlashCommandBuilder()
     .setName("dice-prefix")
     .setDescription("Manage d! prefix command permissions")
+    .setContexts(InteractionContextType.Guild)
     .addSubcommand((sub) =>
       sub
         .setName("mode")

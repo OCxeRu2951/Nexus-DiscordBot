@@ -136,7 +136,7 @@ b!APEX ランク @2 2時間
 
 | 項目 | 技術 |
 | --- | --- |
-| ランタイム | Node.js 20+（ESModule） |
+| ランタイム | Node.js 24+（ESModule） |
 | フレームワーク | discord.js v14 |
 | データベース | Turso（libSQL） |
 | ホスティング | GCP e2-micro |
@@ -234,7 +234,7 @@ Nexusがサーバーから削除されると、そのサーバーのデータは
 
 ### 前提条件
 
-- Node.js 20以上
+- Node.js 24以上
 - Tursoアカウント・データベース
 - Discord Developer PortalでBotを作成済み
 - Developer Portalで**Message Content Intent**を有効化済み（`a!`/`r!`/`d!`/`b!`プレフィックスコマンドに必須）

@@ -25,6 +25,38 @@ function truncateField(str, max = EMBED_FIELD_MAX) {
   return text.length > max ? text.slice(0, max - 3) + "..." : text;
 }
 
+// a! と b! は運営への通知や募集の投稿を伴うため、同じ人の連投を間隔で制限する
+const PREFIX_COOLDOWN_MS = 10 * 1000;
+const prefixCooldowns = new Map(); // "a!:<guildId>:<userId>" → { until, warned }
+
+/**
+ * 連投制限中かを判定し、使える場合は次の制限を開始する。
+ * 制限中の案内は1回だけにして、返信で連投を増やさない。
+ */
+function takePrefixCooldown(key) {
+  const now   = Date.now();
+  const entry = prefixCooldowns.get(key);
+  if (entry && entry.until > now) {
+    const notify = !entry.warned;
+    entry.warned = true;
+    return { limited: true, notify, seconds: Math.ceil((entry.until - now) / 1000) };
+  }
+  // 期限切れのエントリが溜まり続けないよう、件数が増えたら掃除する
+  if (prefixCooldowns.size >= 1000) {
+    for (const [k, v] of prefixCooldowns) if (v.until <= now) prefixCooldowns.delete(k);
+  }
+  prefixCooldowns.set(key, { until: now + PREFIX_COOLDOWN_MS, warned: false });
+  return { limited: false };
+}
+
+async function replyCooldown(message, lang, cooldown) {
+  if (!cooldown.notify) return;
+  await message
+    .reply(t(lang, "commands.common.cooldown", { seconds: cooldown.seconds }))
+    .then((msg) => setTimeout(() => msg.delete().catch(() => {}), 5000))
+    .catch(console.error);
+}
+
 function generateId() {
   const date    = new Date();
   const dateStr = date.toISOString().slice(0, 10).replace(/-/g, "");
@@ -144,6 +176,9 @@ export default {
         return;
       }
 
+      const cooldown = takePrefixCooldown(`b!:${message.guildId}:${message.author.id}`);
+      if (cooldown.limited) return replyCooldown(message, lang, cooldown);
+
       await publishRecruit(message.client, {
         // 募集投稿は b! のメッセージへの返信にする（本人への返信通知は不要）
         send: (payload) =>
@@ -184,6 +219,9 @@ export default {
       // コメント欄は廃止。a! 以降の本文をすべて申請内容とする
       const content_ = matched.body;
       if (!content_) return message.reply(t(lang, "commands.apply.usage"));
+
+      const cooldown = takePrefixCooldown(`a!:${message.guildId}:${message.author.id}`);
+      if (cooldown.limited) return replyCooldown(message, lang, cooldown);
 
       const id  = generateId();
       const now = Date.now();

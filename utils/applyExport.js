@@ -1,6 +1,14 @@
 import { db } from "./db.js";
 import { AttachmentBuilder } from "discord.js";
 
+// 申請内容・申請者名は利用者が自由に書けるため、CSV の区切りを壊さないよう " を二重にし、
+// Excel 等で数式として実行されないよう = + - @ タブ 改行 で始まる値は先頭に ' を付ける
+function csvField(value) {
+  let text = String(value ?? "");
+  if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`;
+  return `"${text.replace(/"/g, '""')}"`;
+}
+
 export async function exportApplications(guildId) {
   const { rows } = await db
     .execute({
@@ -24,10 +32,10 @@ export async function exportApplications(guildId) {
       : "";
     return [
       row.id,
-      `"${row.content}"`,
-      `"${row.comment ?? ""}"`,
+      csvField(row.content),
+      csvField(row.comment),
       row.user_id,
-      `"${row.username}"`,
+      csvField(row.username),
       row.status,
       createdAt,
       resolvedAt,

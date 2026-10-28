@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, PermissionFlagsBits } from "discord.js";
+import { SlashCommandBuilder, PermissionFlagsBits, InteractionContextType } from "discord.js";
 import { t } from "../utils/i18n.js";
 import { sendModLog } from "../utils/modLog.js";
 import { getExecutor, outranks } from "../utils/hierarchy.js";
@@ -7,6 +7,7 @@ export default {
   data: new SlashCommandBuilder()
     .setName("kick")
     .setDescription("Kick a user")
+    .setContexts(InteractionContextType.Guild)
     .addUserOption((opt) => opt.setName("user").setDescription("Target user").setRequired(true))
     .addStringOption((opt) => opt.setName("reason").setDescription("Reason").setRequired(false))
     .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers),
@@ -26,6 +27,6 @@ export default {
     await target.send(t(lang, "commands.kick.dm", { guild: interaction.guild.name, reason })).catch(() => {});
     await member.kick(reason);
     await interaction.reply(t(lang, "commands.kick.success", { userId: target.id }));
-    await sendModLog(interaction.client, interaction.guildId, { action: "kick", target, moderator: interaction.user, reason });
+    await sendModLog(interaction.guild, "kick", target, interaction.user, reason);
   },
 };
