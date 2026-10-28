@@ -1,8 +1,8 @@
-FROM node:20-alpine
+FROM node:24-alpine
 
 WORKDIR /app
 COPY package*.json ./
-RUN npm install --only=production
+RUN npm ci --omit=dev
 COPY . .
 
 CMD ["node", "index.js"]

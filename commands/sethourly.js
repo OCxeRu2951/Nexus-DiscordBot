@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, PermissionFlagsBits } from "discord.js";
+import { SlashCommandBuilder, PermissionFlagsBits, InteractionContextType } from "discord.js";
 import { db } from "../utils/db.js";
 import { t } from "../utils/i18n.js";
 
@@ -6,6 +6,7 @@ export default {
   data: new SlashCommandBuilder()
     .setName("sethourly")
     .setDescription("Manage hourly announcement settings")
+    .setContexts(InteractionContextType.Guild)
     .addStringOption((opt) =>
       opt.setName("action").setDescription("Action").setRequired(true)
         .addChoices(

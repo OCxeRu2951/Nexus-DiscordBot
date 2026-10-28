@@ -14,6 +14,9 @@ const client = new Client({
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildMembers,
   ],
+  // AFK の理由や申請内容など、利用者が書いた文に @everyone やロールが含まれていても通知しない。
+  // ロール等を鳴らす投稿（募集・時報）は送信時に個別に指定する
+  allowedMentions: { parse: ["users"], repliedUser: true },
 });
 
 // DB初期化

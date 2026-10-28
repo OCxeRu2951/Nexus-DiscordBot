@@ -1,10 +1,11 @@
-import { SlashCommandBuilder, EmbedBuilder } from "discord.js";
+import { SlashCommandBuilder, EmbedBuilder, InteractionContextType } from "discord.js";
 import { t } from "../utils/i18n.js";
 
 export default {
   data: new SlashCommandBuilder()
     .setName("userinfo")
     .setDescription("Display user information")
+    .setContexts(InteractionContextType.Guild)
     .addUserOption((opt) =>
       opt.setName("user").setDescription("Target user").setRequired(false),
     ),
