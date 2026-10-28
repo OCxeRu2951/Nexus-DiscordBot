@@ -1,6 +1,7 @@
 import { SlashCommandBuilder, PermissionFlagsBits } from "discord.js";
 import { t } from "../utils/i18n.js";
 import { sendModLog } from "../utils/modLog.js";
+import { getExecutor, outranks } from "../utils/hierarchy.js";
 
 const DURATION_MAP = {
   "60": "1分/1min", "300": "5分/5min", "600": "10分/10min",
@@ -37,9 +38,12 @@ export default {
     const durationStr = DURATION_MAP[duration] ?? duration;
 
     if (target.id === interaction.user.id) return interaction.reply({ content: t(lang, "commands.timeout.self"), ephemeral: true });
-    const member = interaction.guild.members.cache.get(target.id);
+    const member = await interaction.guild.members.fetch(target.id).catch(() => null);
     if (!member) return interaction.reply({ content: t(lang, "commands.timeout.not_found"), ephemeral: true });
     if (!member.moderatable) return interaction.reply({ content: t(lang, "commands.timeout.no_permission"), ephemeral: true });
+    if (!outranks(await getExecutor(interaction), member)) {
+      return interaction.reply({ content: t(lang, "commands.common.target_higher"), ephemeral: true });
+    }
 
     await member.timeout(durationMs, reason);
     await interaction.reply(t(lang, "commands.timeout.success", { userId: target.id, duration: durationStr }));

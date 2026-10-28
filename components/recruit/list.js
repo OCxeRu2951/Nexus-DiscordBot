@@ -24,9 +24,15 @@ const UNKNOWN_MESSAGE   = 10008;
 const pendingUpdates = new Map(); // guildId → Timeout
 const runningUpdates = new Map(); // guildId → Promise
 
-async function fetchChannel(client, channelId) {
-  return client.channels.cache.get(channelId)
+/**
+ * 設定されたチャンネルを取得する。そのサーバーのチャンネルでなければ null。
+ * （チャンネルIDはダッシュボードからも保存できるため、他サーバーへ投稿しないよう確認する）
+ */
+async function fetchGuildChannel(client, guildId, channelId) {
+  if (!channelId) return null;
+  const channel = client.channels.cache.get(channelId)
     ?? await client.channels.fetch(channelId).catch(() => null);
+  return channel?.guildId === String(guildId) ? channel : null;
 }
 
 function truncate(str, max) {
@@ -121,7 +127,7 @@ async function doUpdate(client, guildId) {
     settings.list_message_channel_id &&
     settings.list_message_channel_id !== settings.list_channel_id
   ) {
-    const oldChannel = await fetchChannel(client, settings.list_message_channel_id);
+    const oldChannel = await fetchGuildChannel(client, guildId, settings.list_message_channel_id);
     const oldMessage = await oldChannel?.messages?.fetch(settings.list_message_id).catch(() => null);
     await oldMessage?.delete().catch(() => {});
     await setListMessage(guildId, null, null);
@@ -130,7 +136,7 @@ async function doUpdate(client, guildId) {
 
   if (!settings.list_channel_id) return "disabled";
 
-  const channel = await fetchChannel(client, settings.list_channel_id);
+  const channel = await fetchGuildChannel(client, guildId, settings.list_channel_id);
   if (!channel?.messages || typeof channel.send !== "function") {
     console.error(`[recruit-list] channel unavailable: guild=${guildId} channel=${settings.list_channel_id}`);
     return "channel_unavailable";
