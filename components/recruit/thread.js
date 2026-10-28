@@ -56,7 +56,8 @@ export async function createRecruitThread(client, recruit, message, settings) {
 
   if (settings.thread_mode === "forum" && settings.forum_channel_id) {
     const forum = await fetchChannel(client, settings.forum_channel_id);
-    if (forum?.type === ChannelType.GuildForum) {
+    // フォーラムIDはダッシュボードからも保存できるため、他サーバーのフォーラムには投稿しない
+    if (forum?.type === ChannelType.GuildForum && forum.guildId === String(recruit.guild_id)) {
       thread = await forum.threads
         .create({
           name,

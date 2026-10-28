@@ -6,6 +6,7 @@ import {
 import { db } from "../utils/db.js";
 import { t } from "../utils/i18n.js";
 import { sendModLog, checkWarnThreshold } from "../utils/modLog.js";
+import { getExecutor, outranks } from "../utils/hierarchy.js";
 
 export default {
   data: new SlashCommandBuilder()
@@ -36,6 +37,12 @@ export default {
 
     if (target.id === interaction.user.id) {
       return interaction.editReply(t(lang, "commands.warn.self"));
+    }
+
+    // 警告ポイントは自動タイムアウト・自動BANにつながるため、上位のメンバーには警告できない
+    const member = await interaction.guild.members.fetch(target.id).catch(() => null);
+    if (member && !outranks(await getExecutor(interaction), member)) {
+      return interaction.editReply(t(lang, "commands.common.target_higher"));
     }
 
     await db.execute({

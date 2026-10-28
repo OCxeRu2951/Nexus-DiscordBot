@@ -120,7 +120,7 @@ Per-hour and per-day-of-week messages (text / embed / image / file) are configur
 | Command | Description |
 | --- | --- |
 | `a!<content>` | Submit an application (configured channel only; everything after `a!` is the content) |
-| `r!<ID>` | Cancel an application |
+| `r!<ID>` | Cancel your own application (in the server where you applied) |
 | `/apply-config` | Configure the application system (channel, notification role/method, admin channel, view, CSV export) |
 
 ### Language
