@@ -2,10 +2,10 @@
 
 > Discord向けオールインワンユーティリティBot
 
-[![Version](https://img.shields.io/badge/version-v0.7.0-f07830)](https://github.com/OCxeRu2951/DiscordBot-Nexus/releases)
+[![Version](https://img.shields.io/badge/version-v0.10.1-f07830)](https://github.com/OCxeRu2951/DiscordBot-Nexus/releases)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue)](../LICENSE)
 [![discord.js](https://img.shields.io/badge/discord.js-v14-5865f2)](https://discord.js.org)
-[![Node.js](https://img.shields.io/badge/Node.js-20%2B-green)](https://nodejs.org)
+[![Node.js](https://img.shields.io/badge/Node.js-24%2B-green)](https://nodejs.org)
 
 [English README](../README.md)
 
