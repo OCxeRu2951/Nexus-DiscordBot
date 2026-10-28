@@ -1,6 +1,7 @@
 import { SlashCommandBuilder, PermissionFlagsBits } from "discord.js";
 import { t } from "../utils/i18n.js";
 import { sendModLog } from "../utils/modLog.js";
+import { getExecutor, outranks } from "../utils/hierarchy.js";
 
 export default {
   data: new SlashCommandBuilder()
@@ -15,9 +16,12 @@ export default {
     const reason = interaction.options.getString("reason") ?? t(lang, "commands.common.no_reason");
 
     if (target.id === interaction.user.id) return interaction.reply({ content: t(lang, "commands.kick.self"), ephemeral: true });
-    const member = interaction.guild.members.cache.get(target.id);
+    const member = await interaction.guild.members.fetch(target.id).catch(() => null);
     if (!member) return interaction.reply({ content: t(lang, "commands.kick.not_found"), ephemeral: true });
     if (!member.kickable) return interaction.reply({ content: t(lang, "commands.kick.no_permission"), ephemeral: true });
+    if (!outranks(await getExecutor(interaction), member)) {
+      return interaction.reply({ content: t(lang, "commands.common.target_higher"), ephemeral: true });
+    }
 
     await target.send(t(lang, "commands.kick.dm", { guild: interaction.guild.name, reason })).catch(() => {});
     await member.kick(reason);

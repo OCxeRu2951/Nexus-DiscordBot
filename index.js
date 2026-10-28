@@ -36,11 +36,25 @@ const eventFiles = readdirSync(join(__dirname, "events")).filter((f) =>
 );
 for (const file of eventFiles) {
   const { default: event } = await import(`./events/${file}`);
+  // 1件の処理の失敗（権限不足で返信できない、DBの一時障害など）でプロセスごと落ちないよう、ここで受け止める
+  const run = (...args) =>
+    Promise.resolve()
+      .then(() => event.execute(...args, client))
+      .catch((err) => console.error(`[event:${event.name}]`, err));
   if (event.once) {
-    client.once(event.name, (...args) => event.execute(...args, client));
+    client.once(event.name, run);
   } else {
-    client.on(event.name, (...args) => event.execute(...args, client));
+    client.on(event.name, run);
   }
 }
 
-client.login(process.env.DISCORD_TOKEN);
+// error リスナーが無いと、discord.js が emit した error でプロセスが終了する
+client.on("error", (err) => console.error("[client]", err));
+// タイマー等から呼ばれる非同期処理の失敗もログに残して動作を続ける
+process.on("unhandledRejection", (err) => console.error("[unhandledRejection]", err));
+
+// ログインできない場合は従来どおり終了させ、PM2 の再起動とログで気付けるようにする
+client.login(process.env.DISCORD_TOKEN).catch((err) => {
+  console.error("[login]", err);
+  process.exit(1);
+});
