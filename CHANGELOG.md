@@ -6,6 +6,34 @@ All notable changes to Nexus Bot are documented in this file.
 
 ---
 
+## [v0.10.1] - 2026-10-28
+
+### Changed
+- Only members with `Manage Server` or the notification role can approve or reject applications
+- `r!` now only cancels your own applications made in the same server
+- `/role` can only manage roles below your highest role (`@everyone` and integration roles are excluded)
+- `/ban`, `/kick`, `/timeout` and `/warn` can only target members below you
+- `/lock` and `/slowmode` now require `Manage Channels` in the target channel
+- `a!` / `b!` ignore repeated messages from the same member for 10 seconds
+- `@everyone`, `@here` and role mentions typed by users no longer ping when Nexus repeats them (hourly messages and the `/recruit` notification role are unchanged)
+- Server-only commands can no longer be used in DMs (`/dice`, `/help`, `/language` and `/timer` still work in DMs)
+- Hourly message file URLs must be Discord file URLs (`cdn.discordapp.com` / `media.discordapp.net`); image and thumbnail URLs are unchanged
+- Improved dashboard security
+  - Reworked login and sessions (you will be signed out once with this update)
+  - Settings are validated on save; channels from other servers and out-of-range values are rejected
+  - Servers without Nexus, or where you lack admin permissions, can no longer be opened
+- Now requires Node.js 24 or later; dependencies updated
+
+### Fixed
+- Nexus could stop running after certain actions
+- Hourly messages, recruitment lists and forums no longer post to a channel that belongs to another server
+- Moderation logs were not recorded for `/ban`, `/kick`, `/timeout`, `/untimeout`, `/unban` and `/role`
+- `/afk set` and `/afk list` did not work (AFK now expires after the time set in each server)
+- `/apply-config mode:export` could not export CSV (cells are also no longer treated as formulas in spreadsheet apps)
+- Data could be deleted unexpectedly when retention settings had out-of-range values
+
+---
+
 ## [v0.10.0] - 2026-09-30
 
 ### Added
