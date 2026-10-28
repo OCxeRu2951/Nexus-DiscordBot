@@ -1,10 +1,11 @@
-import { SlashCommandBuilder, PermissionFlagsBits } from "discord.js";
+import { SlashCommandBuilder, PermissionFlagsBits, InteractionContextType } from "discord.js";
 import { t } from "../utils/i18n.js";
 
 export default {
   data: new SlashCommandBuilder()
     .setName("clear")
     .setDescription("Bulk delete messages")
+    .setContexts(InteractionContextType.Guild)
     .addIntegerOption((opt) =>
       opt.setName("count").setDescription("Number of messages (1-100)").setRequired(true).setMinValue(1).setMaxValue(100),
     )

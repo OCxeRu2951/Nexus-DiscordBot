@@ -3,6 +3,7 @@ import {
   PermissionFlagsBits,
   EmbedBuilder,
   ChannelType,
+  InteractionContextType,
 } from "discord.js";
 import { db } from "../utils/db.js";
 import { t } from "../utils/i18n.js";
@@ -11,6 +12,7 @@ export default {
   data: new SlashCommandBuilder()
     .setName("setmod")
     .setDescription("Manage moderation settings")
+    .setContexts(InteractionContextType.Guild)
     .addStringOption((opt) =>
       opt
         .setName("action")

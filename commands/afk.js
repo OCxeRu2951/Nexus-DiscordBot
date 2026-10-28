@@ -1,4 +1,4 @@
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, InteractionContextType } from "discord.js";
 import { db } from "../utils/db.js";
 import { t } from "../utils/i18n.js";
 
@@ -6,6 +6,7 @@ export default {
   data: new SlashCommandBuilder()
     .setName("afk")
     .setDescription("Set or list AFK status")
+    .setContexts(InteractionContextType.Guild)
     .addSubcommand((sub) =>
       sub
         .setName("set")

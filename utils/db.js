@@ -16,9 +16,10 @@ export async function initDb() {
         fire_at    INTEGER NOT NULL
       )`,
       `CREATE TABLE IF NOT EXISTS afk (
-        user_id TEXT PRIMARY KEY,
-        reason  TEXT    NOT NULL,
-        since   INTEGER NOT NULL
+        user_id  TEXT PRIMARY KEY,
+        guild_id TEXT,
+        reason   TEXT    NOT NULL,
+        since    INTEGER NOT NULL
       )`,
       `CREATE TABLE IF NOT EXISTS warnings (
         id        INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -200,6 +201,8 @@ export async function initDb() {
   await addColumnIfMissing("recruits", "thread_id", "TEXT");
   await addColumnIfMissing("recruits", "thread_kind", "TEXT");
   await addColumnIfMissing("recruits", "view_channel_id", "TEXT");
+  // /afk set・list が参照する列（AFK を設定したサーバー。自動解除の時間もそのサーバーの設定に従う）
+  await addColumnIfMissing("afk", "guild_id", "TEXT");
 }
 
 async function addColumnIfMissing(table, column, type) {
